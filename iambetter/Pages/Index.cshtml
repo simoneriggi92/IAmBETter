@@ -1,10 +1,36 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Bet of the day";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<h1>Generated BET</h1>
+
+@if (Model.Bet is not null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Home</th>
+                <th>Away</th>
+                <th>Prediction</th>
+                <th>Confidence (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var match in Model.Bet.Predictions)
+            {
+                <tr>
+                    <td>@match.HomeTeam</td>
+                    <td>@match.AwayTeam</td>
+                    <td>@match.PredictedOutcome</td>
+                    <td>@match.Confidence%</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Errore nel recupero della schedina.</p>
+}
