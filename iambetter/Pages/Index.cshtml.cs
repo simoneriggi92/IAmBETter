@@ -24,7 +24,8 @@ namespace iambetter.Pages
 
         public async Task OnGet()
         {
-            await _dataSetService.GetUpcomingSerieAMatchesAsync(2024);
+            await _dataSetService.GetTeamsAsync(2024);
+            //await _dataSetService.GetSerieAMatchesAsync(2024);
             Bet.Predictions = _predictionSerice.GetPredictions();
         }
     }

@@ -23,7 +23,7 @@ namespace iambetter.Application.Services
         /// </summary>
         /// <returns></returns>
         /// 
-        public async Task<List<FixtureResponse>?> GetUpcomingSerieAMatchesAsync(int season)
+        public async Task<List<FixtureResponse>?> GetSerieAMatchesAsync(int season)
         {
             var url = $"{_baseUrl}fixtures?league={SERIEA_LEAGUE_ID}&season={season}";
             var response = await _httpClient.GetAsync(url);
@@ -35,6 +35,32 @@ namespace iambetter.Application.Services
 
             var json = await response.Content.ReadAsStringAsync();
             var result = JsonSerializer.Deserialize<ApiResponse<FixtureResponse>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return result?.Response;
+        }
+
+        //public async Task<List<object>> GetTeamsStatsAsync(int season)
+        //{
+        //    var url = $"{_baseUrl}teams/statistics?league={SERIEA_LEAGUE_ID}&season={season}";
+        //    var response = await _httpClient.GetAsync(url);
+        //    if (!response.IsSuccessStatusCode)
+        //    {
+        //        throw new Exception("Failed to retrieve Serie A standings");
+        //    }
+        //    var json = await response.Content.ReadAsStringAsync();
+        //    var result = JsonSerializer.Deserialize<ApiResponse<FixtureResponse>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        //    return result?.Response;
+        //}
+
+        public async Task<List<TeamResponse>> GetTeamsAsync(int season)
+        {
+            var url = $"{_baseUrl}teams?league={SERIEA_LEAGUE_ID}&season={season}";
+            var response = await _httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception("Failed to retrieve Serie A standings");
+            }
+            var json = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<ApiResponse<TeamResponse>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             return result?.Response;
         }
     }
