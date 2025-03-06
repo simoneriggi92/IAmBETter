@@ -1,6 +1,6 @@
 # iambetter
 
-##Docker setup
+## Docker setup
 
 Use the following command to add pull mongodb image and start container locally to the port 27017. 
 
