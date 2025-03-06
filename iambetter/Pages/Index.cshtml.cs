@@ -1,5 +1,5 @@
 ﻿using iambetter.Application.Services;
-using iambetter.Domain.Models;
+using iambetter.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 

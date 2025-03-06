@@ -1,4 +1,4 @@
-﻿using static iambetter.Domain.Models.Bet;
+﻿using static iambetter.Domain.Entities.Bet;
 
 namespace iambetter.Application.Services
 {

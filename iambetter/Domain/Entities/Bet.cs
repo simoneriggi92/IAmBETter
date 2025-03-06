@@ -1,4 +1,4 @@
-﻿namespace iambetter.Domain.Models
+﻿namespace iambetter.Domain.Entities
 {
     public class Bet
     {

@@ -6,27 +6,19 @@
         public Venue Venue { get; set; }
     }
 
-    public class Team
+    public class Team : TeamDetails
     {
-        public int Id { get; set; }
         public string Code { get; set; }
-
-        public string Name { get; set; }
 
         public string Country { get; set; }
 
         public int? Founded { get; set; }
 
-        public string? Logo { get; set; }
-
         public bool National { get; set; }
     }
 
-    public class Venue
+    public class Venue : VenueInfo
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string City { get; set; }
 
         public string Surface { get; set; }
 
