@@ -1,14 +1,43 @@
 using iambetter.Application.Services;
+using iambetter.Application.Services.Abstracts;
+using iambetter.Application.Services.Interfaces;
+using iambetter.Data.Entities;
+using iambetter.Domain.Entities.Models;
+using iambetter.Domain.Entities.Projections;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorPages();
+builder.Services.Configure<MongoDbSettings>(
+    builder.Configuration.GetSection("MongoDB"));
+
+// Register MongoDB client and database
+builder.Services.AddSingleton<IMongoClient>(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+    return new MongoClient(settings.ConnectionString);
+});
+
+builder.Services.AddSingleton(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+    return client.GetDatabase(settings.DatabaseName);
+});
 
 //add services
-builder.Services.AddTransient<PredictionService>();
-builder.Services.AddHttpClient<DataSetService>();
+builder.Services.AddScoped(typeof(IRepositoryService<>), typeof(MongoRepositoryService<>));
+builder.Services.AddScoped<BaseDataService<Team>, TeamDataService>();
+builder.Services.AddScoped<BaseDataService<MatchProjection>, MatchDataService>();
+builder.Services.AddHttpClient<APIDataSetService>();
+
+builder.Services.AddRazorPages();
+
 var app = builder.Build();
+
+// Bind configuration section to settings class
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

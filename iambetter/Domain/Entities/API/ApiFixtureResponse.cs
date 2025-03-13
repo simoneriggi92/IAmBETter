@@ -1,7 +1,11 @@
-﻿namespace iambetter.Domain.Models
+﻿using iambetter.Data.Interfaces;
+using iambetter.Domain.Enums;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System.Text.Json.Serialization;
+
+namespace iambetter.Domain.Entities.Models
 {
-
-
     public class FixtureResponse
     {
         public FixtureInfo Fixture { get; set; }
@@ -38,11 +42,27 @@
 
     public class StatusInfo
     {
+        public StatusInfo() { }
         public string Long { get; set; }
         public string Short { get; set; }
         public int? Elapsed { get; set; }
 
         public int? Extra { get; set; }
+
+        [JsonIgnore]
+        public MatchStatus Status
+        {
+            get
+            {
+                //create swtich
+                return this.Short switch
+                {
+                    "NS" => MatchStatus.NS,
+                    "FT" => MatchStatus.FT,
+                    _ => MatchStatus.Unknown
+                };
+            }
+        }
     }
 
     public class GoalsInfo
@@ -86,13 +106,19 @@
 
     public class TeamInfo
     {
-        public TeamDetails Home { get; set; }
-        public TeamDetails Away { get; set; }
+        public Team Home { get; set; }
+        public Team Away { get; set; }
     }
 
-    public class TeamDetails
+    public class Team : IModelIdentity
     {
-        public int? Id { get; set; }
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        [System.Text.Json.Serialization.JsonIgnore]
+        public string Id { get; set; }
+
+        [JsonPropertyName(name: "id")]
+        public int? TeamId { get; set; }
         public string Name { get; set; }
         public string Logo { get; set; }
 

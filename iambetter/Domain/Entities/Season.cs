@@ -1,4 +1,4 @@
-﻿using iambetter.Domain.Models;
+﻿using iambetter.Domain.Entities.Models;
 
 namespace iambetter.Domain.Entities
 {
