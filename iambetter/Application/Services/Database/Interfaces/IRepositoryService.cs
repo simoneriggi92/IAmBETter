@@ -1,6 +1,7 @@
-﻿using System.Linq.Expressions;
+﻿using MongoDB.Driver;
+using System.Linq.Expressions;
 
-namespace iambetter.Application.Services.Interfaces
+namespace iambetter.Application.Services.Database.Interfaces
 {
     public interface IRepositoryService<T>
     {
@@ -16,5 +17,9 @@ namespace iambetter.Application.Services.Interfaces
         public Task DeleteAsync(string id);
 
         public Task<IEnumerable<T>> GetByFilterAsync(Expression<Func<T, bool>> filter);
+
+        public Task<ReplaceOneResult> ReplaceOneAsync(FilterDefinition<T> filter, T replacementDocument, ReplaceOptions replaceOptions);
+
+        public Task<BulkWriteResult<T>> ReplaceManyAsync(IEnumerable<WriteModel<T>> replacementDocuments, BulkWriteOptions options);
     }
 }

@@ -1,8 +1,8 @@
-﻿using iambetter.Application.Services;
-using iambetter.Application.Services.Abstracts;
-using iambetter.Domain.Entities;
+﻿using iambetter.Application.Services.API;
+using iambetter.Application.Services.Database;
+using iambetter.Application.Services.Database.Abstracts;
+using iambetter.Domain.Entities.Database.Projections;
 using iambetter.Domain.Entities.Models;
-using iambetter.Domain.Entities.Projections;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 

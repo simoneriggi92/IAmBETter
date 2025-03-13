@@ -1,6 +1,7 @@
-﻿using iambetter.Domain.Entities.Models;
+﻿using iambetter.Domain.Entities.Database.Projections;
+using iambetter.Domain.Entities.Models;
 
-namespace iambetter.Domain.Entities
+namespace iambetter.Domain.Entities.Database
 {
     public class Season
     {
@@ -8,7 +9,7 @@ namespace iambetter.Domain.Entities
 
         public int Year { get; set; }
 
-        public List<Team> PartecipantTeams { get; set; } = new List<Team>();
+        public List<TeamStasProjection> TeamStatistics { get; set; } = new List<TeamStasProjection>();
 
         /// <summary>
         /// The league may have multiple seasons, so multiple league info per season

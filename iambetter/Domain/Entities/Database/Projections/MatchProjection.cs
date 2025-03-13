@@ -1,9 +1,9 @@
-﻿using iambetter.Data.Interfaces;
+﻿using iambetter.Domain.Entities.Interfaces;
 using iambetter.Domain.Entities.Models;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace iambetter.Domain.Entities.Projections
+namespace iambetter.Domain.Entities.Database.Projections
 {
     public class MatchProjection : IModelIdentity
     {

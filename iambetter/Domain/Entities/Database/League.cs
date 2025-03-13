@@ -1,4 +1,4 @@
-﻿namespace iambetter.Domain.Entities
+﻿namespace iambetter.Domain.Entities.Database
 {
     public class League
     {

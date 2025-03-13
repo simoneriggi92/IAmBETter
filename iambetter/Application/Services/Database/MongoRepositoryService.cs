@@ -1,9 +1,9 @@
-﻿using iambetter.Application.Services.Interfaces;
-using iambetter.Data.Entities;
+﻿using iambetter.Application.Services.Database.Interfaces;
+using iambetter.Domain.Entities.Database.Configuration;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace iambetter.Application.Services
+namespace iambetter.Application.Services.Database
 {
     public class MongoRepositoryService<T> : IRepositoryService<T>
     {
@@ -48,6 +48,16 @@ namespace iambetter.Application.Services
         public async Task UpdateAsync(string id, T entity)
         {
             await _collection.ReplaceOneAsync(Builders<T>.Filter.Eq("Id", id), entity);
+        }
+
+        public async Task<ReplaceOneResult> ReplaceOneAsync(FilterDefinition<T> filter, T replacementDocument, ReplaceOptions replaceOptions)
+        {
+            return await _collection.ReplaceOneAsync(filter, replacementDocument, replaceOptions);
+        }
+
+        public async Task<BulkWriteResult<T>> ReplaceManyAsync(IEnumerable<ReplaceOneModel<T>> replacementDocuments, BulkWriteOptions options)
+        {
+            return await _collection.BulkWriteAsync(replacementDocuments, options);
         }
     }
 

@@ -2,7 +2,7 @@
 using iambetter.Domain.Entities.Models;
 using System.Text.Json;
 
-namespace iambetter.Application.Services
+namespace iambetter.Application.Services.API
 {
     public class APIDataSetService
     {

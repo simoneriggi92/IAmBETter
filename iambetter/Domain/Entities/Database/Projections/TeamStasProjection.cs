@@ -1,9 +1,9 @@
-﻿using iambetter.Data.Interfaces;
-using iambetter.Domain.Entities.API;
+﻿using iambetter.Domain.Entities.API;
+using iambetter.Domain.Entities.Interfaces;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace iambetter.Domain.Entities.Projections
+namespace iambetter.Domain.Entities.Database.Projections
 {
     public class TeamStasProjection : IModelIdentity
     {
@@ -12,6 +12,6 @@ namespace iambetter.Domain.Entities.Projections
         [System.Text.Json.Serialization.JsonIgnore]
         public string Id { get; set; }
 
-        public TeamStatisticsResponse Response { get; set; }
+        public TeamStatisticsResponse TeamStatistics { get; set; }
     }
 }

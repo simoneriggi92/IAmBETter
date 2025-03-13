@@ -1,9 +1,10 @@
-using iambetter.Application.Services;
-using iambetter.Application.Services.Abstracts;
-using iambetter.Application.Services.Interfaces;
-using iambetter.Data.Entities;
+using iambetter.Application.Services.API;
+using iambetter.Application.Services.Database;
+using iambetter.Application.Services.Database.Abstracts;
+using iambetter.Application.Services.Database.Interfaces;
+using iambetter.Domain.Entities.Database.Configuration;
+using iambetter.Domain.Entities.Database.Projections;
 using iambetter.Domain.Entities.Models;
-using iambetter.Domain.Entities.Projections;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 

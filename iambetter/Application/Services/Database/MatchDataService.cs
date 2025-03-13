@@ -1,9 +1,9 @@
-﻿using iambetter.Application.Services.Abstracts;
-using iambetter.Application.Services.Interfaces;
+﻿using iambetter.Application.Services.Database.Abstracts;
+using iambetter.Application.Services.Database.Interfaces;
+using iambetter.Domain.Entities.Database.Projections;
 using iambetter.Domain.Entities.Models;
-using iambetter.Domain.Entities.Projections;
 
-namespace iambetter.Application.Services
+namespace iambetter.Application.Services.Database
 {
     public class MatchDataService : BaseDataService<MatchProjection>
     {
@@ -21,7 +21,7 @@ namespace iambetter.Application.Services
                 Teams = fixture.Teams
             }).ToList();
 
-            await base.InsertAllAsync(list);
+            await InsertAllAsync(list);
         }
 
     }

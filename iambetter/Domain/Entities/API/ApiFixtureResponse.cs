@@ -1,4 +1,4 @@
-﻿using iambetter.Data.Interfaces;
+﻿using iambetter.Domain.Entities.Interfaces;
 using iambetter.Domain.Enums;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;

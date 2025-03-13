@@ -1,8 +1,8 @@
-﻿using iambetter.Application.Services.Abstracts;
-using iambetter.Application.Services.Interfaces;
+﻿using iambetter.Application.Services.Database.Abstracts;
+using iambetter.Application.Services.Database.Interfaces;
 using iambetter.Domain.Entities.Models;
 
-namespace iambetter.Application.Services
+namespace iambetter.Application.Services.Database
 {
     public class TeamDataService : BaseDataService<Team>
     {
@@ -12,7 +12,7 @@ namespace iambetter.Application.Services
 
         public async Task AddTeamsAsync(List<ApiTeamResponse> teamResponses)
         {
-            await base.InsertAllAsync(teamResponses.Select(x => new TeamDetails
+            await InsertAllAsync(teamResponses.Select(x => new TeamDetails
             {
                 Id = x.Team.Id,
                 TeamId = x.Team.TeamId,

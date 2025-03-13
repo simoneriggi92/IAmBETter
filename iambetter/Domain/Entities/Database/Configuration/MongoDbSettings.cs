@@ -1,4 +1,4 @@
-﻿namespace iambetter.Data.Entities
+﻿namespace iambetter.Domain.Entities.Database.Configuration
 {
     public class MongoDbSettings
     {
