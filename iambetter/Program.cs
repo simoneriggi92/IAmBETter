@@ -32,6 +32,7 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddScoped(typeof(IRepositoryService<>), typeof(MongoRepositoryService<>));
 builder.Services.AddScoped<BaseDataService<Team>, TeamDataService>();
 builder.Services.AddScoped<BaseDataService<MatchProjection>, MatchDataService>();
+builder.Services.AddScoped<BaseDataService<TeamStatsProjection>, StatsDataService>();
 builder.Services.AddHttpClient<APIDataSetService>();
 
 builder.Services.AddRazorPages();

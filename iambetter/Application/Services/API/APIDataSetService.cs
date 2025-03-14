@@ -87,7 +87,7 @@ namespace iambetter.Application.Services.API
 
         public async Task<TeamStatisticsResponse> GetTeamStatisticsAsync(int teamId, int season)
         {
-            var url = $"{_baseUrl}teams/statistics?season={season}&team={teamId}";
+            var url = $"{_baseUrl}teams/statistics?season={season}&team={teamId}&league={SERIEA_LEAGUE_ID}";
             var response = await _httpClient.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {

@@ -59,6 +59,11 @@ namespace iambetter.Application.Services.Database
         {
             return await _collection.BulkWriteAsync(replacementDocuments, options);
         }
+
+        public Task<BulkWriteResult<T>> ReplaceManyAsync(IEnumerable<WriteModel<T>> replacementDocuments, BulkWriteOptions options)
+        {
+            return _collection.BulkWriteAsync(replacementDocuments, options);
+        }
     }
 
     public static class MongoDbSettingsExtension
@@ -69,8 +74,8 @@ namespace iambetter.Application.Services.Database
             {
                 "Team" => settings.TeamCollectionName,
                 "League" => settings.LeagueCollectionName,
-                "Match" => settings.MatchCollectionName,
-                "FixtureProjection" => settings.MatchCollectionName,
+                "MatchProjection" => settings.MatchCollectionName,
+                "TeamStatsProjection" => settings.StatsCollectionName,
                 _ => throw new ArgumentException($"No collection name mapping for type {entity.Name}")
 
             };

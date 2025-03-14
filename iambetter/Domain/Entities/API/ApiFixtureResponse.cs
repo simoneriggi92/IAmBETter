@@ -123,6 +123,12 @@ namespace iambetter.Domain.Entities.Models
         public string Logo { get; set; }
 
         public bool? Winner { get; set; }
+
+        [JsonIgnore]
+        public DateTime CreationDateUtc { get; set; } = DateTime.UtcNow;
+
+        [JsonIgnore]
+        public DateTime LastUpdateDateUtc { get; set; } = DateTime.UtcNow;
     }
 
 }

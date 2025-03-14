@@ -9,5 +9,9 @@ namespace iambetter.Domain.Entities.Interfaces
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         string Id { get; set; }
+
+        DateTime CreationDateUtc { get; set; }
+
+        DateTime LastUpdateDateUtc { get; set; }
     }
 }

@@ -5,7 +5,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace iambetter.Domain.Entities.Database.Projections
 {
-    public class TeamStasProjection : IModelIdentity
+    public class TeamStatsProjection : IModelIdentity
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
@@ -13,5 +13,9 @@ namespace iambetter.Domain.Entities.Database.Projections
         public string Id { get; set; }
 
         public TeamStatisticsResponse TeamStatistics { get; set; }
+
+        public DateTime CreationDateUtc { get; set; } = DateTime.UtcNow;
+        public DateTime LastUpdateDateUtc { get; set; } = DateTime.UtcNow;
+
     }
 }

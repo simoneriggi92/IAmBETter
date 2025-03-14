@@ -6,21 +6,21 @@ using MongoDB.Driver;
 
 namespace iambetter.Application.Services.Database
 {
-    public class StatsDataService : BaseDataService<TeamStasProjection>
+    public class StatsDataService : BaseDataService<TeamStatsProjection>
     {
-        public StatsDataService(IRepositoryService<TeamStasProjection> repositoryService) : base(repositoryService)
+        public StatsDataService(IRepositoryService<TeamStatsProjection> repositoryService) : base(repositoryService)
         {
         }
 
         public async Task<ReplaceOneResult> UpsertTeamStatsAsync(TeamStatisticsResponse response)
         {
             //check if there is a spcific document for the team
-            var filter = Builders<TeamStasProjection>
-                .Filter.And(Builders<TeamStasProjection>.Filter.Eq(x => x.TeamStatistics.Team.Id, response.Team.Id),
-                            Builders<TeamStasProjection>.Filter.Eq(x => x.TeamStatistics.League.Season, response.League.Season));
+            var filter = Builders<TeamStatsProjection>
+                .Filter.And(Builders<TeamStatsProjection>.Filter.Eq(x => x.TeamStatistics.Team.Id, response.Team.Id),
+                            Builders<TeamStatsProjection>.Filter.Eq(x => x.TeamStatistics.League.Season, response.League.Season));
 
             //create document to store
-            var document = new TeamStasProjection
+            var document = new TeamStatsProjection
             {
                 TeamStatistics = response
             };
@@ -28,20 +28,20 @@ namespace iambetter.Application.Services.Database
             return await base.ReplaceOneAsync(filter, document, new ReplaceOptions { IsUpsert = true });
         }
 
-        public async Task<BulkWriteResult<TeamStasProjection>> UpsertAllTeamsStatsAsync(IEnumerable<TeamStatisticsResponse> responses)
+        public async Task<BulkWriteResult<TeamStatsProjection>> UpsertAllTeamsStatsAsync(IEnumerable<TeamStatisticsResponse> responses)
         {
-            var bulkOperations = new List<WriteModel<TeamStasProjection>>();
+            var bulkOperations = new List<WriteModel<TeamStatsProjection>>();
 
             foreach (var response in responses)
             {
-                var filter = Builders<TeamStasProjection>
-                    .Filter.And(Builders<TeamStasProjection>.Filter.Eq(x => x.TeamStatistics.Team.Id, response.Team.Id),
-                                Builders<TeamStasProjection>.Filter.Eq(x => x.TeamStatistics.League.Season, response.League.Season));
-                var document = new TeamStasProjection
+                var filter = Builders<TeamStatsProjection>
+                    .Filter.And(Builders<TeamStatsProjection>.Filter.Eq(x => x.TeamStatistics.Team.Id, response.Team.Id),
+                                Builders<TeamStatsProjection>.Filter.Eq(x => x.TeamStatistics.League.Season, response.League.Season));
+                var document = new TeamStatsProjection
                 {
                     TeamStatistics = response
                 };
-                var upsertOne = new ReplaceOneModel<TeamStasProjection>(filter, document)
+                var upsertOne = new ReplaceOneModel<TeamStatsProjection>(filter, document)
                 {
                     IsUpsert = true
                 };
