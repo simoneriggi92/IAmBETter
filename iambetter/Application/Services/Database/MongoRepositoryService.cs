@@ -30,7 +30,7 @@ namespace iambetter.Application.Services.Database
             return await _collection.Find(Builders<T>.Filter.Eq("Id", id)).FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<T>> GetByFilterAsync(System.Linq.Expressions.Expression<Func<T, bool>> filter)
+        public async Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter)
         {
             return await _collection.Find(filter).ToListAsync();
         }

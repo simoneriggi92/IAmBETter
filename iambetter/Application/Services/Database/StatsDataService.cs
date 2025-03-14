@@ -50,5 +50,11 @@ namespace iambetter.Application.Services.Database
 
             return await base.ReplaceManyAsync(bulkOperations, new BulkWriteOptions { IsOrdered = false });
         }
+
+        public async Task<IEnumerable<TeamStatsProjection>> GetTeamStatsBySeasonAsync(string season)
+        {
+            var filter = Builders<TeamStatsProjection>.Filter.Eq(x => x.TeamStatistics.League.Season, Convert.ToInt16(season));
+            return await base.GetByFilterAsync(filter);
+        }
     }
 }

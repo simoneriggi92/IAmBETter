@@ -1,7 +1,6 @@
 ﻿using iambetter.Application.Services.Database.Interfaces;
 using iambetter.Domain.Entities.Interfaces;
 using MongoDB.Driver;
-using System.Linq.Expressions;
 
 namespace iambetter.Application.Services.Database.Abstracts
 {
@@ -29,7 +28,7 @@ namespace iambetter.Application.Services.Database.Abstracts
             return _repositoryService.GetAsync(id);
         }
 
-        public Task<IEnumerable<T>> GetByFilterAsync(Expression<Func<T, bool>> filter)
+        public Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter)
         {
             return _repositoryService.GetByFilterAsync(filter);
         }
