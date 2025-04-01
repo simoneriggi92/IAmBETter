@@ -20,7 +20,6 @@ namespace iambetter.Domain.Entities.Models
 
         public bool National { get; set; }
 
-        public int Season { get; set; }
     }
 
     public class Venue : VenueInfo

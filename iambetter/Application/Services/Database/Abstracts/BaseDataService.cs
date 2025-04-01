@@ -28,9 +28,9 @@ namespace iambetter.Application.Services.Database.Abstracts
             return _repositoryService.GetAsync(id);
         }
 
-        public Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter)
+        public Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter, ProjectionDefinition<T> projection = null)
         {
-            return _repositoryService.GetByFilterAsync(filter);
+            return _repositoryService.GetByFilterAsync(filter, projection);
         }
 
         public async Task InsertAsync(T entity)

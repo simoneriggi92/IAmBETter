@@ -1,6 +1,7 @@
 ﻿using iambetter.Application.Services.Database.Abstracts;
 using iambetter.Application.Services.Database.Interfaces;
 using iambetter.Domain.Entities.Models;
+using MongoDB.Driver;
 
 namespace iambetter.Application.Services.Database
 {
@@ -10,7 +11,7 @@ namespace iambetter.Application.Services.Database
         {
         }
 
-        public async Task AddTeamsAsync(List<ApiTeamResponse> teamResponses)
+        public async Task AddTeamsAsync(List<ApiTeamResponse> teamResponses, int league)
         {
             await InsertAllAsync(teamResponses.Select(x => new TeamDetails
             {
@@ -22,8 +23,21 @@ namespace iambetter.Application.Services.Database
                 Founded = x.Team?.Founded,
                 Code = x.Team?.Code,
                 National = x.Team.National,
-                Season = x.Season
+                Season = x.Season,
+                LeagueId = league
             }));
+        }
+
+        public async Task<IEnumerable<int>> GetAllTeamsIdsBySeasonAndLeagueAsync(int league, int season)
+        {
+            var filter = Builders<Team>.Filter.And(Builders<Team>.Filter.Eq(x => x.LeagueId, league),
+                                                    Builders<Team>.Filter.Eq(x => x.Season, season));
+
+            var projection = Builders<Team>.Projection.Include(x => x.TeamId);
+
+            var result = await GetByFilterAsync(filter, projection);
+
+            return result.Select(x => x.TeamId);
         }
     }
 }

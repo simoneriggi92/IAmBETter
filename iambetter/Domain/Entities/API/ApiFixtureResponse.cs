@@ -118,7 +118,7 @@ namespace iambetter.Domain.Entities.Models
         public string Id { get; set; }
 
         [JsonPropertyName(name: "id")]
-        public int? TeamId { get; set; }
+        public int TeamId { get; set; }
         public string Name { get; set; }
         public string Logo { get; set; }
 
@@ -129,6 +129,12 @@ namespace iambetter.Domain.Entities.Models
 
         [JsonIgnore]
         public DateTime LastUpdateDateUtc { get; set; } = DateTime.UtcNow;
+
+        [JsonIgnore]
+        public int LeagueId { get; set; }
+
+        [JsonIgnore]
+        public int Season { get; set; }
     }
 
 }

@@ -10,6 +10,8 @@ namespace iambetter.Application.Services.API
         private readonly IConfiguration _configuration;
         private readonly string _baseUrl;
         private const string SERIEA_LEAGUE_ID = "135";
+        private const int DELAY_BETWEEN_REQUESTS = 60000;
+        private const int MAX_REQUESTS_PER_MINUTE = 10;
 
         public APIDataSetService(HttpClient httpClient, IConfiguration configuration)
         {
@@ -85,7 +87,39 @@ namespace iambetter.Application.Services.API
             return result.Response.Where(x => x.Fixture.Status.Status == Domain.Enums.MatchStatus.NS).Take(matchesPerRound).ToList();
         }
 
-        public async Task<TeamStatisticsResponse> GetTeamStatisticsAsync(int teamId, int season)
+        public async Task<IEnumerable<TeamStatisticsResponse>> GetAllTeamsStatisticsAsync(IEnumerable<int> teamdIds, int season)
+        {
+            //we can do only 10 requests/minute, so we need to split the ids to tasks batches of 10 and wait for one minute between each batch
+            var results = new List<TeamStatisticsResponse>();
+
+            //create list of list of 10 tasks 
+            var batches = teamdIds.
+                Select((teamId, index) => new { teamId, index })
+                .GroupBy(x => x.index / MAX_REQUESTS_PER_MINUTE)
+                .Select(g => g.Select(x => x.teamId).ToList())
+                .ToList();
+
+            foreach (var batch in batches)
+            {
+                var batchResult = await Task.WhenAll(batch.Select(x => GetTeamStatisticsAsync(x, season)));
+
+                //check if any of the tasks failed
+                if (batchResult.Any(x => x == null))
+                {
+                    throw new Exception("Failed to retrieve team statistics for one or more teams");
+                }
+                                
+                results.AddRange(batchResult);
+
+                //wait before the next batch, except for the last one
+                if (batch != batches.Last())
+                    await Task.Delay(DELAY_BETWEEN_REQUESTS);
+
+            }
+            return results;
+        }
+
+        public async Task<TeamStatisticsResponse?> GetTeamStatisticsAsync(int teamId, int season)
         {
             var url = $"{_baseUrl}teams/statistics?season={season}&team={teamId}&league={SERIEA_LEAGUE_ID}";
             var response = await _httpClient.GetAsync(url);
@@ -97,5 +131,6 @@ namespace iambetter.Application.Services.API
             var result = JsonSerializer.Deserialize<APIStatsResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             return result?.Response;
         }
+
     }
 }

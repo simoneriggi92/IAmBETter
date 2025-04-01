@@ -1,11 +1,14 @@
 ﻿using iambetter.Domain.Entities.Models;
+using System.Text.Json.Serialization;
 
 namespace iambetter.Domain.Entities.API
 {
     public class APIStatsResponse
     {
         public string Get { get; set; }
-        public Dictionary<string, string> Parameters { get; set; }
+        public Dictionary<string, string>? Parameters { get; set; }
+
+        [JsonIgnore]
         public List<string> Errors { get; set; }
         public int Results { get; set; }
         public Paging Paging { get; set; }

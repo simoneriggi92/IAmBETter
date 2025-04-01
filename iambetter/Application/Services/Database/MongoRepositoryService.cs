@@ -30,9 +30,12 @@ namespace iambetter.Application.Services.Database
             return await _collection.Find(Builders<T>.Filter.Eq("Id", id)).FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter)
+        public async Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter, ProjectionDefinition<T> projection = null)
         {
-            return await _collection.Find(filter).ToListAsync();
+            if (projection == null)
+                return await _collection.Find(filter).ToListAsync();
+
+            return await _collection.Find(filter).Project<T>(projection).ToListAsync();
         }
 
         public async Task InsertAsync(T entity)

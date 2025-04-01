@@ -30,13 +30,17 @@ namespace iambetter.Pages
         public async Task OnGet()
         {
             //var result = await _dataSetService.GetTeamsAsync(2024);
-            //await (_teamRepoService as TeamDataService).AddTeamsAsync(result);
+            //await (_teamRepoService as TeamDataService).AddTeamsAsync(result, 135);
             //var result = await _dataSetService.GetNextRoundMatches(2024, 10);
             //await (_matchDataService as MatchDataService).SveNextMatchesAsync(result);
             //Domain.Entities.API.TeamStatisticsResponse? response = await _dataSetService.GetTeamStatisticsAsync(496, 2024);
             //var result = await (_statsDataService as StatsDataService).UpsertTeamStatsAsync(response);
-            IEnumerable<TeamStatsProjection>? result = await (_statsDataService as StatsDataService).GetTeamStatsBySeasonAsync("2024");
-            _dataSetComposerService.GenerateDataSet(result);
+            var teamIds = await (_teamRepoService as TeamDataService).GetAllTeamsIdsBySeasonAndLeagueAsync(135, 2024);
+
+            //var stats = await _dataSetService.GetAllTeamsStatisticsAsync(teamIds, 2024);
+
+            var r = await _dataSetService.GetAllTeamsStatisticsAsync(teamIds.TakeLast(4), 2024);
+            var res = await (_statsDataService as StatsDataService).UpsertAllTeamsStatsAsync(r);
         }
     }
 }
