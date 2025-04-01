@@ -38,9 +38,9 @@ namespace iambetter.Application.Services.Database.Abstracts
             await _repositoryService.InsertAsync(entity);
         }
 
-        public async Task InsertAllAsync(IEnumerable<T> entities)
+        public async Task InsertManyAsync(IEnumerable<T> entities)
         {
-            await _repositoryService.InsertAllAsync(entities);
+            await _repositoryService.InsertManyAsync(entities);
         }
 
         public async Task UpdateAsync(string id, T entity)

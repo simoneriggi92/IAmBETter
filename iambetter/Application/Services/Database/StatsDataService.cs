@@ -28,27 +28,23 @@ namespace iambetter.Application.Services.Database
             return await base.ReplaceOneAsync(filter, document, new ReplaceOptions { IsUpsert = true });
         }
 
-        public async Task<BulkWriteResult<TeamStatsProjection>> UpsertAllTeamsStatsAsync(IEnumerable<TeamStatisticsResponse> responses)
+        public async Task UpsertAllTeamsStatsAsync(IEnumerable<TeamStatisticsResponse> responses)
         {
-            var bulkOperations = new List<WriteModel<TeamStatsProjection>>();
+            var documents = new List<TeamStatsProjection>();
 
             foreach (var response in responses)
             {
                 var filter = Builders<TeamStatsProjection>
-                    .Filter.And(Builders<TeamStatsProjection>.Filter.Eq(x => x.TeamStatistics.Team.Id, response.Team.Id),
+                    .Filter.And(Builders<TeamStatsProjection>.Filter.Eq(x => x.TeamStatistics.Team.TeamId, response.Team.TeamId),
                                 Builders<TeamStatsProjection>.Filter.Eq(x => x.TeamStatistics.League.Season, response.League.Season));
                 var document = new TeamStatsProjection
                 {
                     TeamStatistics = response
                 };
-                var upsertOne = new ReplaceOneModel<TeamStatsProjection>(filter, document)
-                {
-                    IsUpsert = true
-                };
-                bulkOperations.Add(upsertOne);
+                documents.Add(document);
             }
 
-            return await base.ReplaceManyAsync(bulkOperations, new BulkWriteOptions { IsOrdered = false });
+            await base.InsertManyAsync(documents);
         }
 
         public async Task<IEnumerable<TeamStatsProjection>> GetTeamStatsBySeasonAsync(string season)

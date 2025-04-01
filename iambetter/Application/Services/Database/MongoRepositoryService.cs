@@ -42,7 +42,7 @@ namespace iambetter.Application.Services.Database
         {
             await _collection.InsertOneAsync(entity);
         }
-        public async Task InsertAllAsync(IEnumerable<T> entities)
+        public async Task InsertManyAsync(IEnumerable<T> entities)
         {
             await _collection.InsertManyAsync(entities);
         }
@@ -63,9 +63,9 @@ namespace iambetter.Application.Services.Database
             return await _collection.BulkWriteAsync(replacementDocuments, options);
         }
 
-        public Task<BulkWriteResult<T>> ReplaceManyAsync(IEnumerable<WriteModel<T>> replacementDocuments, BulkWriteOptions options)
+        public async Task<BulkWriteResult<T>> ReplaceManyAsync(IEnumerable<WriteModel<T>> replacementDocuments, BulkWriteOptions options)
         {
-            return _collection.BulkWriteAsync(replacementDocuments, options);
+            return await _collection.BulkWriteAsync(replacementDocuments, options);
         }
     }
 

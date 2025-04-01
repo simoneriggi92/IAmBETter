@@ -40,7 +40,7 @@ namespace iambetter.Pages
             //var stats = await _dataSetService.GetAllTeamsStatisticsAsync(teamIds, 2024);
 
             var r = await _dataSetService.GetAllTeamsStatisticsAsync(teamIds.TakeLast(4), 2024);
-            var res = await (_statsDataService as StatsDataService).UpsertAllTeamsStatsAsync(r);
+            await (_statsDataService as StatsDataService).UpsertAllTeamsStatsAsync(r);
         }
     }
 }

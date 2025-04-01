@@ -13,7 +13,7 @@ namespace iambetter.Application.Services.Database
 
         public async Task AddTeamsAsync(List<ApiTeamResponse> teamResponses, int league)
         {
-            await InsertAllAsync(teamResponses.Select(x => new TeamDetails
+            await InsertManyAsync(teamResponses.Select(x => new TeamDetails
             {
                 Id = x.Team.Id,
                 TeamId = x.Team.TeamId,

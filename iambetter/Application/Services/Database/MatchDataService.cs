@@ -21,7 +21,7 @@ namespace iambetter.Application.Services.Database
                 Teams = fixture.Teams
             }).ToList();
 
-            await InsertAllAsync(list);
+            await InsertManyAsync(list);
         }
 
     }
