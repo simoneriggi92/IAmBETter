@@ -8,6 +8,8 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import accuracy_score, classification_report
 from xgboost import XGBClassifier
 from imblearn.over_sampling import SMOTE
+import matplotlib.pyplot as plt
+
 
 # 1️⃣ Load dataset
 df = pd.read_csv("D:/source/iambetter/LLMModel/football_matches.csv")
@@ -80,6 +82,10 @@ print(df_results.head(10))
 print(classification_report(y_test, y_pred, target_names=["Loss", "Draw", "Win"]))
 accuracy = accuracy_score(y_test, y_pred)
 print("Model Accuracy:", accuracy)
+
+importances = grid_search.best_estimator_.feature_importances_
+plt.barh(X_train.columns, importances)
+plt.show()
 
 # 🔥 Save the trained model
 with open("optimized_model.pkl", "wb") as f:

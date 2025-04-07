@@ -9,7 +9,7 @@ namespace iambetter.Domain.Entities.Database
 
         public int Year { get; set; }
 
-        public List<TeamStatsProjection> TeamStatistics { get; set; } = new List<TeamStatsProjection>();
+        public List<TeamStatsDTO> TeamStatistics { get; set; } = new List<TeamStatsDTO>();
 
         /// <summary>
         /// The league may have multiple seasons, so multiple league info per season

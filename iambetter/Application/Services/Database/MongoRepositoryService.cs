@@ -1,5 +1,6 @@
 ﻿using iambetter.Application.Services.Database.Interfaces;
 using iambetter.Domain.Entities.Database.Configuration;
+using iambetter.Domain.Entities.Database.Projections;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
@@ -77,8 +78,8 @@ namespace iambetter.Application.Services.Database
             {
                 "Team" => settings.TeamCollectionName,
                 "League" => settings.LeagueCollectionName,
-                "MatchProjection" => settings.MatchCollectionName,
-                "TeamStatsProjection" => settings.StatsCollectionName,
+                $"{nameof(MatchDTO)}" => settings.MatchCollectionName,
+                $"{nameof(TeamStatsDTO)}" => settings.StatsCollectionName,
                 _ => throw new ArgumentException($"No collection name mapping for type {entity.Name}")
 
             };

@@ -23,7 +23,6 @@ namespace iambetter.Domain.Entities.Models
         public StatusInfo Status { get; set; }
         public PeriodsInfo Periods { get; set; }
         public string Referee { get; set; }
-
         public string Timezone { get; set; }
     }
 

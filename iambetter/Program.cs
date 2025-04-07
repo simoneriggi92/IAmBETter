@@ -34,8 +34,8 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddScoped(typeof(IRepositoryService<>), typeof(MongoRepositoryService<>));
 builder.Services.AddScoped<IAIDataSetService, DataSetComposerService>();
 builder.Services.AddScoped<BaseDataService<Team>, TeamDataService>();
-builder.Services.AddScoped<BaseDataService<MatchProjection>, MatchDataService>();
-builder.Services.AddScoped<BaseDataService<TeamStatsProjection>, StatsDataService>();
+builder.Services.AddScoped<BaseDataService<MatchDTO>, MatchDataService>();
+builder.Services.AddScoped<BaseDataService<MatchDTO>, StatsDataService>();
 builder.Services.AddHttpClient<APIDataSetService>();
 
 builder.Services.AddRazorPages();

@@ -11,16 +11,16 @@ namespace iambetter.Pages
     public class IndexModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;
-        private readonly APIDataSetService _dataSetService;
+        private readonly APIDataSetService _apiDataService;
         private readonly BaseDataService<Team> _teamRepoService;
-        private readonly BaseDataService<MatchProjection> _matchDataService;
-        private readonly BaseDataService<TeamStatsProjection> _statsDataService;
+        private readonly BaseDataService<MatchDTO> _matchDataService;
+        private readonly BaseDataService<MatchDTO> _statsDataService;
         private readonly IAIDataSetService _dataSetComposerService;
 
-        public IndexModel(ILogger<IndexModel> logger, APIDataSetService dataSetService, BaseDataService<Team> teamRepoService, BaseDataService<MatchProjection> matchDataService, BaseDataService<TeamStatsProjection> statsDataService, IAIDataSetService dataSetComposerService)
+        public IndexModel(ILogger<IndexModel> logger, APIDataSetService apiDataService, BaseDataService<Team> teamRepoService, BaseDataService<MatchDTO> matchDataService, BaseDataService<MatchDTO> statsDataService, IAIDataSetService dataSetComposerService)
         {
             _logger = logger;
-            _dataSetService = dataSetService;
+            _apiDataService = apiDataService;
             _teamRepoService = teamRepoService;
             _matchDataService = matchDataService;
             _statsDataService = statsDataService;
@@ -35,12 +35,13 @@ namespace iambetter.Pages
             //await (_matchDataService as MatchDataService).SveNextMatchesAsync(result);
             //Domain.Entities.API.TeamStatisticsResponse? response = await _dataSetService.GetTeamStatisticsAsync(496, 2024);
             //var result = await (_statsDataService as StatsDataService).UpsertTeamStatsAsync(response);
-            var teamIds = await (_teamRepoService as TeamDataService).GetAllTeamsIdsBySeasonAndLeagueAsync(135, 2024);
+            // var teamIds = await (_teamRepoService as TeamDataService).GetAllTeamsIdsBySeasonAndLeagueAsync(135, 2024);
 
             //var stats = await _dataSetService.GetAllTeamsStatisticsAsync(teamIds, 2024);
 
-            var r = await _dataSetService.GetAllTeamsStatisticsAsync(teamIds.TakeLast(4), 2024);
-            await (_statsDataService as StatsDataService).UpsertAllTeamsStatsAsync(r);
+            // var r = await _dataSetService.GetAllTeamsStatisticsAsync(teamIds, 2024);
+            // await (_statsDataService as StatsDataService).UpsertAllTeamsStatsAsync(r);
+            await (_statsDataService as StatsDataService).AddNextMatchesStatsGroupByRoundAsync(_apiDataService, (_teamRepoService as TeamDataService), 2024, 135);
         }
     }
 }

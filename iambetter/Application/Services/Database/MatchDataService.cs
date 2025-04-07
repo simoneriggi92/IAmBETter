@@ -5,19 +5,18 @@ using iambetter.Domain.Entities.Models;
 
 namespace iambetter.Application.Services.Database
 {
-    public class MatchDataService : BaseDataService<MatchProjection>
+    public class MatchDataService : BaseDataService<MatchDTO>
     {
-        public MatchDataService(IRepositoryService<MatchProjection> repositoryService) : base(repositoryService)
+        public MatchDataService(IRepositoryService<MatchDTO> repositoryService) : base(repositoryService)
         {
         }
 
-        public async Task SveNextMatchesAsync(IEnumerable<FixtureResponse> fixtureResponses)
+        public async Task SaveNextMatchesAsync(IEnumerable<FixtureResponse> fixtureResponses)
         {
-            var list = fixtureResponses.Select(fixture => new MatchProjection
+            var list = fixtureResponses.Select(fixture => new MatchDTO
             {
                 Season = fixture.League.Season,
                 Round = fixture.League.Round,
-                Fixture = fixture.Fixture,
                 Teams = fixture.Teams
             }).ToList();
 

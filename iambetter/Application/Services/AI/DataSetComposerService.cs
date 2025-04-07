@@ -13,7 +13,7 @@ namespace iambetter.Application.Services.AI
         {
         }
 
-        public void GenerateDataSet(IEnumerable<TeamStatsProjection> stats)
+        public void GenerateDataSet(IEnumerable<TeamStatsDTO> stats)
         {
             try
             {
