@@ -33,6 +33,8 @@ namespace iambetter.Application.Services.Database
                 //get all matches for the league and season
                 var matches = await apiDataService.GetNextRoundMatches(season, 10);
 
+                await Task.Delay(60000); // Delay to avoid hitting the API rate limit
+                
                 IEnumerable<TeamStatisticsResponse> statistics = null;
                 if(matches != null && matches.Response.Count > 0)
                 {

@@ -151,5 +151,53 @@ namespace iambetter.Application.Services.API
             return result;
         }
 
+
+        public async Task<IEnumerable<FixtureResponse>?> GetLastHeadToHeadOfAllTeams(IEnumerable<(int team1Id, int team2Id)> teamdIds, int last = 1)
+        {
+           var results = new List<FixtureResponse>();
+           //create list of list of 10 tasks 
+            var batches = teamdIds.
+                Select((teamId, index) => new { teamId, index })
+                .GroupBy(x => x.index / MAX_REQUESTS_PER_MINUTE)
+                .Select(g => g.Select(x => x.teamId).ToList())
+                .ToList();
+
+            foreach (var batch in batches)
+            {
+                var batchResult = await Task.WhenAll(batch.Select(x => GetLastHeadToHead(x.team1Id, x.team2Id, last)));
+
+                //check if any of the tasks failed
+                if (batchResult.Any(x => x == null))
+                {
+                    throw new Exception("Failed to retrieve team statistics for one or more teams");
+                }
+
+                results.AddRange(batchResult.SelectMany(x => x.Response));
+
+                //wait before the next batch, except for the last one
+                if (batch != batches.Last())
+                    await Task.Delay(DELAY_BETWEEN_REQUESTS);
+            }
+            return results;
+        }
+
+        private async Task<APIRoundResponse>  GetLastHeadToHead(int team1Id, int team2Id, int last)
+        {
+            var url = $"{_baseUrl}fixtures/headtohead?h2h={team1Id}-{team2Id}&last={last}";
+            var response = await _httpClient.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception("Failed to retrieve upcoming Serie A matches");
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<APIRoundResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (result == null)
+                return new APIRoundResponse();
+
+            return result;
+        }
     }
 }

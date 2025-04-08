@@ -41,7 +41,9 @@ namespace iambetter.Pages
 
             // var r = await _dataSetService.GetAllTeamsStatisticsAsync(teamIds, 2024);
             // await (_statsDataService as StatsDataService).UpsertAllTeamsStatsAsync(r);
-            await (_statsDataService as StatsDataService).AddNextMatchesStatsGroupByRoundAsync(_apiDataService, (_teamRepoService as TeamDataService), 2024, 135);
+            // await (_statsDataService as StatsDataService).AddNextMatchesStatsGroupByRoundAsync(_apiDataService, (_teamRepoService as TeamDataService), 2024, 135);
+            var teamIds = await (_teamRepoService as TeamDataService).GetAllTeamsIdsBySeasonAndLeagueAsync(135, 2024);
+            var result = await _apiDataService.GetLastHeadToHeadOfAllTeams(teamIds, 1);
         }
     }
 }
