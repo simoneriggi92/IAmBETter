@@ -15,20 +15,10 @@ namespace iambetter.Application.Services.Database
         public StatsDataService(IRepositoryService<MatchDTO> repositoryService) : base(repositoryService)
         {
         }
-        public async Task SaveNextMatchesAsync(IEnumerable<FixtureResponse> fixtureResponses)
-        {
-            var list = fixtureResponses.Select(fixture => new MatchDTO
-            {
-                Season = fixture.League.Season,
-                Round = fixture.League.Round,
-                Teams = fixture.Teams
-            }).ToList();
-
-            await InsertManyAsync(list);
-        }
 
         /// <summary>
-        /// /// Fills the head to head statistics for the next round matches(like result). The statistics are used to create the dataset. This can be ran once the games are played.
+        /// /// Fills the head to head statistics for the next round matches(like result). The statistics are used to create the dataset.
+        /// The aim of the method is to be invoked after every match weekend in order to update the results of the matches and keep updated the stats to be used for the dataset.
         /// </summary>
         /// <param name="apiService"></param>
         /// <returns></returns>
@@ -65,6 +55,12 @@ namespace iambetter.Application.Services.Database
              );
         }
 
+        /// <summary>
+        /// Get the next 10 round matches to be stored in the db.
+        /// </summary>
+        /// <param name="season"></param>
+        /// <param name="round"></param>
+        /// <returns></returns>
         public async Task<IEnumerable<MatchDTO>> GetNextRoundMatchesAsync(int season, string round)
         {
             //get by filter async
@@ -118,7 +114,12 @@ namespace iambetter.Application.Services.Database
             }
         }
        
-
+        /// <summary>
+        /// Inserts the next round matches into the database. The matches are grouped by round and the statistics are used to create the dataset.
+        /// </summary>
+        /// <param name="matches"></param>
+        /// <param name="statistics"></param>
+        /// <returns></returns>
         public async Task InsertNextRoundMatchesAsync(APIRoundResponse matches, IEnumerable<TeamStatisticsResponse> statistics)
         {
             //for each match, get the team statistics for the teams in the match
@@ -141,6 +142,11 @@ namespace iambetter.Application.Services.Database
             }
         }
 
+        /// <summary>
+        /// Cleans the round string to get the round number. The round string is in the format "Round - 1" or "Round - 2" and we want to get only the number.
+        /// </summary>
+        /// <param name="round"></param>
+        /// <returns></returns>
         private static string GetCleanRound(string round)
         {
             return Regex.Match(round, @"\d{2}(?!.*\d)").Value;
