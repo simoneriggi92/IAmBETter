@@ -11,18 +11,16 @@ namespace iambetter.Pages
     public class IndexModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;
-        private readonly APIDataSetService _apiDataService;
+        private readonly APIService _apiService;
         private readonly BaseDataService<Team> _teamRepoService;
-        private readonly BaseDataService<MatchDTO> _matchDataService;
         private readonly BaseDataService<MatchDTO> _statsDataService;
         private readonly IAIDataSetService _dataSetComposerService;
 
-        public IndexModel(ILogger<IndexModel> logger, APIDataSetService apiDataService, BaseDataService<Team> teamRepoService, BaseDataService<MatchDTO> matchDataService, BaseDataService<MatchDTO> statsDataService, IAIDataSetService dataSetComposerService)
+        public IndexModel(ILogger<IndexModel> logger, APIService apiService, BaseDataService<Team> teamRepoService, BaseDataService<MatchDTO> statsDataService, IAIDataSetService dataSetComposerService)
         {
             _logger = logger;
-            _apiDataService = apiDataService;
+            _apiService = apiService;
             _teamRepoService = teamRepoService;
-            _matchDataService = matchDataService;
             _statsDataService = statsDataService;
             _dataSetComposerService = dataSetComposerService;
         }
@@ -42,8 +40,9 @@ namespace iambetter.Pages
             // var r = await _dataSetService.GetAllTeamsStatisticsAsync(teamIds, 2024);
             // await (_statsDataService as StatsDataService).UpsertAllTeamsStatsAsync(r);
             // await (_statsDataService as StatsDataService).AddNextMatchesStatsGroupByRoundAsync(_apiDataService, (_teamRepoService as TeamDataService), 2024, 135);
-            var teamIds = await (_teamRepoService as TeamDataService).GetAllTeamsIdsBySeasonAndLeagueAsync(135, 2024);
-            var result = await _apiDataService.GetLastHeadToHeadOfAllTeams(teamIds, 1);
+            _logger.LogInformation("Runtime type of _matchDataService: {Type}", _statsDataService.GetType());
+            var service = _statsDataService as StatsDataService;
+             await service.FillHeadToHeadStatistics(_apiService);
         }
     }
 }

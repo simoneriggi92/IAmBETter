@@ -5,6 +5,7 @@ using iambetter.Application.Services.Database.Abstracts;
 using iambetter.Application.Services.Database.Interfaces;
 using iambetter.Domain.Entities.API;
 using iambetter.Domain.Entities.Database.Projections;
+using iambetter.Domain.Entities.Models;
 using MongoDB.Driver;
 
 namespace iambetter.Application.Services.Database
@@ -13,6 +14,67 @@ namespace iambetter.Application.Services.Database
     {
         public StatsDataService(IRepositoryService<MatchDTO> repositoryService) : base(repositoryService)
         {
+        }
+        public async Task SaveNextMatchesAsync(IEnumerable<FixtureResponse> fixtureResponses)
+        {
+            var list = fixtureResponses.Select(fixture => new MatchDTO
+            {
+                Season = fixture.League.Season,
+                Round = fixture.League.Round,
+                Teams = fixture.Teams
+            }).ToList();
+
+            await InsertManyAsync(list);
+        }
+
+        /// <summary>
+        /// /// Fills the head to head statistics for the next round matches(like result). The statistics are used to create the dataset
+        /// </summary>
+        /// <param name="apiService"></param>
+        /// <returns></returns>
+        public async Task FillHeadToHeadStatistics(APIService apiService)
+        {
+            var headToHead = await GetNextRoundMatchesAsync(2024, "32");
+            var results = await apiService.GetLastHeadToHeadOfAllTeams(headToHead, 2);
+
+            if (results == null || !results.Any())
+            {
+                throw new Exception("No head to head statistics found for the given season and league ID.");
+            }
+
+            //update headToHead 
+            foreach(var result in results)
+            {
+                // find the head to head record to update
+                var match = headToHead.FirstOrDefault(m => m.Teams.Home.TeamId == result.Teams.Home.TeamId && m.Teams.Away.TeamId == result.Teams.Away.TeamId && m.Season == result.League.Season && m.Round == GetCleanRound(result.League.Round));
+                //evaluate the result and update the result statistic for the match for each Team
+                if (match != null)
+                {
+                    if(result.Teams.Home.Winner.HasValue && result.Teams.Home.Winner.Value)
+                        match.Result = "1";
+                    else if (result.Teams.Away.Winner.HasValue && result.Teams.Away.Winner.Value)
+                        match.Result = "2";
+                    else
+                        match.Result = "X";
+                }
+            }
+            //upsert with headToHead alaready updated into the collection
+            await ReplaceManyAsync(headToHead.Select(m => new ReplaceOneModel<MatchDTO>(Builders<MatchDTO>.Filter.Eq(x => x.Id, m.Id), m)),
+                new BulkWriteOptions { IsOrdered = false }
+             );
+        }
+
+        public async Task<IEnumerable<MatchDTO>> GetNextRoundMatchesAsync(int season, string round)
+        {
+            //get by filter async
+            var filter = Builders<MatchDTO>.Filter.And(
+                Builders<MatchDTO>.Filter.Eq(m => m.Season, season),
+                Builders<MatchDTO>.Filter.Eq(m => m.Round, round)
+            );
+
+            // var projection = Builders<MatchDTO>.Projection.IncludeAll();
+            var matches = await GetByFilterAsync(filter);
+            return matches;
         }
 
         /// <summary>
@@ -24,7 +86,7 @@ namespace iambetter.Application.Services.Database
         /// <param name="season"></param>
         /// <param name="leagueId"></param>
         /// <returns></returns>
-        public async Task AddNextMatchesStatsGroupByRoundAsync(APIDataSetService apiDataService, TeamDataService teamDataService, int season, int leagueId)
+        public async Task AddNextMatchesStatsGroupByRoundAsync(APIService apiDataService, TeamDataService teamDataService, int season, int leagueId)
         {
             try{
                 //get all teams for the league and season
@@ -69,7 +131,7 @@ namespace iambetter.Application.Services.Database
                     var document = new MatchDTO
                     {
                         Season = match.League.Season,
-                        Round = Regex.Match(match.League.Round, @"\d{2}(?!.*\d)").Value,
+                        Round = GetCleanRound(match.League.Round),
                         Teams = match.Teams,
                         TeamStatistics = new List<TeamStatisticsResponse> { homeTeam, awayTeam }
                     };
@@ -78,48 +140,9 @@ namespace iambetter.Application.Services.Database
             }
         }
 
-
-
-        // public async Task<ReplaceOneResult> UpsertTeamStatsAsync(TeamStatisticsResponse response)
-        // {
-        //     //check if there is a spcific document for the team
-        //     var filter = Builders<TeamStatsDTO>
-        //         .Filter.And(Builders<TeamStatsDTO>.Filter.Eq(x => x.TeamStatistics.Team.Id, response.Team.Id),
-        //                     Builders<TeamStatsDTO>.Filter.Eq(x => x.TeamStatistics.League.Season, response.League.Season));
-
-        //     //create document to store
-        //     var document = new TeamStatsDTO
-        //     {
-        //         TeamStatistics = response
-        //     };
-
-        //     return await base.ReplaceOneAsync(filter, document, new ReplaceOptions { IsUpsert = true });
-        // }
-
-
-        // public async Task UpsertAllTeamsStatsAsync(IEnumerable<TeamStatisticsResponse> responses)
-        // {
-        //     var documents = new List<TeamStatsDTO>();
-
-        //     foreach (var response in responses)
-        //     {
-        //         var filter = Builders<TeamStatsDTO>
-        //             .Filter.And(Builders<TeamStatsDTO>.Filter.Eq(x => x.TeamStatistics.Team.TeamId, response.Team.TeamId),
-        //                         Builders<TeamStatsDTO>.Filter.Eq(x => x.TeamStatistics.League.Season, response.League.Season));
-        //         var document = new TeamStatsDTO
-        //         {
-        //             TeamStatistics = response
-        //         };
-        //         documents.Add(document);
-        //     }
-
-        //     await base.InsertManyAsync(documents);
-        // }
-
-        // public async Task<IEnumerable<TeamStatsDTO>> GetTeamStatsBySeasonAsync(string season)
-        // {
-        //     var filter = Builders<TeamStatsDTO>.Filter.Eq(x => x.TeamStatistics.League.Season, Convert.ToInt16(season));
-        //     return await base.GetByFilterAsync(filter);
-        // }
-    }
+        private static string GetCleanRound(string round)
+        {
+            return Regex.Match(round, @"\d{2}(?!.*\d)").Value;
+        }
+} 
 }

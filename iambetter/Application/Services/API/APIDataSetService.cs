@@ -1,10 +1,11 @@
 ﻿using iambetter.Domain.Entities.API;
+using iambetter.Domain.Entities.Database.Projections;
 using iambetter.Domain.Entities.Models;
 using System.Text.Json;
 
 namespace iambetter.Application.Services.API
 {
-    public class APIDataSetService
+    public class APIService
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
@@ -13,7 +14,7 @@ namespace iambetter.Application.Services.API
         private const int DELAY_BETWEEN_REQUESTS = 60000;
         private const int MAX_REQUESTS_PER_MINUTE = 10;
 
-        public APIDataSetService(HttpClient httpClient, IConfiguration configuration)
+        public APIService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
             _configuration = configuration;
@@ -152,8 +153,13 @@ namespace iambetter.Application.Services.API
         }
 
 
-        public async Task<IEnumerable<FixtureResponse>?> GetLastHeadToHeadOfAllTeams(IEnumerable<(int team1Id, int team2Id)> teamdIds, int last = 1)
+        public async Task<IEnumerable<FixtureResponse>?> GetLastHeadToHeadOfAllTeams(IEnumerable<MatchDTO> headToHead, int last = 1)
         {
+           //Create a list of team ids from the headToHead list
+            var teamdIds = headToHead.Select(x => new { team1Id = Convert.ToInt32(x.Teams.Home.TeamId), team2Id = Convert.ToInt32(x.Teams.Away.TeamId) }).ToList();
+
+            //we can do only 10 requests/minute, so we need to split the ids to tasks batches of 10 and wait for one minute between each batch     
+
            var results = new List<FixtureResponse>();
            //create list of list of 10 tasks 
             var batches = teamdIds.

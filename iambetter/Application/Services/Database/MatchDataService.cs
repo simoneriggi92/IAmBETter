@@ -2,6 +2,7 @@
 using iambetter.Application.Services.Database.Interfaces;
 using iambetter.Domain.Entities.Database.Projections;
 using iambetter.Domain.Entities.Models;
+using MongoDB.Driver;
 
 namespace iambetter.Application.Services.Database
 {
@@ -23,5 +24,22 @@ namespace iambetter.Application.Services.Database
             await InsertManyAsync(list);
         }
 
+        public async Task<IEnumerable<MatchDTO>> GetNextRoundMatchesAsync(int season, string round)
+        {
+            //get by filter async
+            var filter = Builders<MatchDTO>.Filter.And(
+                Builders<MatchDTO>.Filter.Eq(m => m.Season, season),
+                Builders<MatchDTO>.Filter.Eq(m => m.Round, round)
+            );
+
+            var projection = Builders<MatchDTO>.Projection.Include(m => m.Teams);
+            var matches = await GetByFilterAsync(filter, projection);
+            return matches.Select(m => new MatchDTO
+            {
+                Season = m.Season,
+                Round = m.Round,
+                Teams = m.Teams
+            }).ToList();
+        }
     }
 }

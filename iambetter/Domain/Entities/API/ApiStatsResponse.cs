@@ -34,6 +34,9 @@ namespace iambetter.Domain.Entities.API
         public Penalty Penalty { get; set; }
         public List<Lineup> Lineups { get; set; }
         public Cards Cards { get; set; }
+
+        [JsonIgnore]
+        public string Result {get;set;}
     }
 
     public class Fixtures
