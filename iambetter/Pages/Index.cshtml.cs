@@ -42,7 +42,7 @@ namespace iambetter.Pages
             // await (_statsDataService as StatsDataService).AddNextMatchesStatsGroupByRoundAsync(_apiDataService, (_teamRepoService as TeamDataService), 2024, 135);
             _logger.LogInformation("Runtime type of _matchDataService: {Type}", _statsDataService.GetType());
             var service = _statsDataService as StatsDataService;
-             await service.FillHeadToHeadStatistics(_apiService);
+             await service.FillLastRoundStatistics(_apiService);
         }
     }
 }

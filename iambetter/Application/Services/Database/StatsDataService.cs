@@ -28,14 +28,14 @@ namespace iambetter.Application.Services.Database
         }
 
         /// <summary>
-        /// /// Fills the head to head statistics for the next round matches(like result). The statistics are used to create the dataset
+        /// /// Fills the head to head statistics for the next round matches(like result). The statistics are used to create the dataset. This can be ran once the games are played.
         /// </summary>
         /// <param name="apiService"></param>
         /// <returns></returns>
-        public async Task FillHeadToHeadStatistics(APIService apiService)
+        public async Task FillLastRoundStatistics(APIService apiService)
         {
             var headToHead = await GetNextRoundMatchesAsync(2024, "32");
-            var results = await apiService.GetLastHeadToHeadOfAllTeams(headToHead, 2);
+            var results = await apiService.GetLastHeadToHeadOfAllTeams(headToHead, 1);
 
             if (results == null || !results.Any())
             {
@@ -45,8 +45,9 @@ namespace iambetter.Application.Services.Database
             //update headToHead 
             foreach(var result in results)
             {
-                // find the head to head record to update
-                var match = headToHead.FirstOrDefault(m => m.Teams.Home.TeamId == result.Teams.Home.TeamId && m.Teams.Away.TeamId == result.Teams.Away.TeamId && m.Season == result.League.Season && m.Round == GetCleanRound(result.League.Round));
+                // find the head to head record to update (home or away)
+                var match = headToHead.FirstOrDefault(m => m.Teams.Home.TeamId == result.Teams.Home.TeamId && m.Teams.Away.TeamId == result.Teams.Away.TeamId
+                 && m.Season == result.League.Season && m.Round == GetCleanRound(result.League.Round));
                 //evaluate the result and update the result statistic for the match for each Team
                 if (match != null)
                 {
