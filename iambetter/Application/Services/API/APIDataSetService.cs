@@ -42,18 +42,6 @@ namespace iambetter.Application.Services.API
             return result?.Response;
         }
 
-        //public async Task<List<object>> GetTeamsStatsAsync(int season)
-        //{
-        //    var url = $"{_baseUrl}teams/statistics?league={SERIEA_LEAGUE_ID}&season={season}";
-        //    var response = await _httpClient.GetAsync(url);
-        //    if (!response.IsSuccessStatusCode)
-        //    {
-        //        throw new Exception("Failed to retrieve Serie A standings");
-        //    }
-        //    var json = await response.Content.ReadAsStringAsync();
-        //    var result = JsonSerializer.Deserialize<ApiResponse<FixtureResponse>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        //    return result?.Response;
-        //}
 
         public async Task<List<ApiTeamResponse>> GetTeamsAsync(int season)
         {
@@ -69,24 +57,6 @@ namespace iambetter.Application.Services.API
             return result?.Response;
         }
 
-        // public async Task<List<FixtureResponse>> GetNextRoundMatches(int season, int matchesPerRound = 10)
-        // {
-        //     var url = $"{_baseUrl}fixtures?league={SERIEA_LEAGUE_ID}&season={season}";
-        //     var response = await _httpClient.GetAsync(url);
-
-        //     if (!response.IsSuccessStatusCode)
-        //     {
-        //         throw new Exception("Failed to retrieve upcoming Serie A matches");
-        //     }
-
-        //     var json = await response.Content.ReadAsStringAsync();
-        //     var result = JsonSerializer.Deserialize<ApiResponse<FixtureResponse>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-        //     if (result == null)
-        //         return new List<FixtureResponse>();
-
-        //     return result.Response.Where(x => x.Fixture.Status.Status == Domain.Enums.MatchStatus.NS).Take(matchesPerRound).ToList();
-        // }
 
         public async Task<IEnumerable<TeamStatisticsResponse>> GetAllTeamsStatisticsAsync(IEnumerable<int> teamdIds, int season)
         {
