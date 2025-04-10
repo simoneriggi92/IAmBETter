@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Collections;
+using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using iambetter.Application.Services.API;
 using iambetter.Application.Services.Database.Abstracts;
@@ -44,9 +45,9 @@ namespace iambetter.Application.Services.Database
                     if(result.Teams.Home.Winner.HasValue && result.Teams.Home.Winner.Value)
                         match.Result = "1";
                     else if (result.Teams.Away.Winner.HasValue && result.Teams.Away.Winner.Value)
-                        match.Result = "2";
+                        match.Result = "-1";
                     else
-                        match.Result = "X";
+                        match.Result = "0";
                 }
             }
             //upsert with headToHead alaready updated into the collection
@@ -151,5 +152,13 @@ namespace iambetter.Application.Services.Database
         {
             return Regex.Match(round, @"\d{2}(?!.*\d)").Value;
         }
-} 
+
+
+        public async Task<IEnumerable<MatchDTO>> GetAllMatchesAsync()
+        {
+            var filter = Builders<MatchDTO>.Filter.Empty;
+            var matches = await GetByFilterAsync(filter);
+            return matches;
+        }
+    } 
 }

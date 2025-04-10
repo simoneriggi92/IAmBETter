@@ -13,29 +13,56 @@ namespace iambetter.Application.Services.AI
         {
         }
 
-        public void GenerateDataSet(IEnumerable<TeamStatsDTO> stats)
+        public void GenerateDataSet(IEnumerable<MatchDTO> matches)
         {
             try
             {
-                var records = new List<TeamStatsRecord>();
-                foreach (var stat in stats)
+                var records = new List<MatchRecord>();
+                foreach (var stat in matches)
                 {
-                    var record = new TeamStatsRecord()
+                    var homeTeamStats = stat.TeamStatistics.FirstOrDefault(x => x.Team.TeamId == stat.Teams.Home.TeamId);
+                    var awayTeamStats = stat.TeamStatistics.FirstOrDefault(x => x.Team.TeamId == stat.Teams.Away.TeamId);
+
+                    if(homeTeamStats == null || awayTeamStats == null)
+                        continue;
+
+                    var record = new MatchRecord()
                     {
-                        TeamId = Convert.ToInt16(stat.TeamStatistics.Team.Id),
-                        Played = stat.TeamStatistics.Fixtures.Played.Total,
-                        Wins = stat.TeamStatistics.Fixtures.Wins.Total,
-                        Loses = stat.TeamStatistics.Fixtures.Loses.Total,
-                        GoalsFor = stat.TeamStatistics.Goals.For.Total.Total,
-                        GoalsAgainst = stat.TeamStatistics.Goals.Against.Total.Total,
-                        CleanSheets = stat.TeamStatistics.CleanSheet?.Total ?? 0,
-                        FailedToScore = stat.TeamStatistics.FailedToScore?.Total ?? 0,
-                        PenaltiesScored = stat.TeamStatistics.Penalty.Scored.Total,
-                        PenaltiesMissed = stat.TeamStatistics.Penalty.Missed.Total,
-                        StreakWins = stat.TeamStatistics.Biggest.Streak.Wins,
-                        StreakLoses = stat.TeamStatistics.Biggest.Streak.Loses,
-                        YellowCardsTotal = stat.TeamStatistics.Cards.Yellow.Values.Sum(y => y.Total ?? 0),
-                        RedCardsTotal = stat.TeamStatistics.Cards.Red.Values.Sum(r => r.Total ?? 0)
+                        Home = new TeamDataSetStats()
+                        {
+                            TeamId = Convert.ToInt16(stat.Teams.Home.TeamId),
+                            Played = homeTeamStats.Fixtures.Played.Total,
+                            Wins = homeTeamStats.Fixtures.Wins.Total ,
+                            Loses = homeTeamStats.Fixtures.Loses.Total ,
+                            GoalsFor = homeTeamStats.Goals.For.Total.Total ,
+                            GoalsAgainst = homeTeamStats.Goals.Against.Total.Total ,
+                            CleanSheets = homeTeamStats.CleanSheet?.Total ?? 0,
+                            FailedToScore = homeTeamStats.FailedToScore?.Total ?? 0,
+                            PenaltiesScored = homeTeamStats.Penalty.Scored.Total,
+                            PenaltiesMissed = homeTeamStats.Penalty.Missed.Total,
+                            StreakWins = homeTeamStats.Biggest.Streak.Wins,
+                            StreakLoses = homeTeamStats.Biggest.Streak.Loses ,
+                            YellowCardsTotal = homeTeamStats.Cards.Yellow.Values.Sum(y => y.Total ?? 0),
+                            RedCardsTotal = homeTeamStats.Cards.Red.Values.Sum(r => r.Total ?? 0)
+                        },
+                        Away = new TeamDataSetStats()
+                        {
+                            TeamId = Convert.ToInt16(stat.Teams.Away.TeamId),
+                            Played = awayTeamStats.Fixtures.Played.Total,
+                            Wins = awayTeamStats.Fixtures.Wins.Total ,
+                            Loses = awayTeamStats.Fixtures.Loses.Total ,
+                            GoalsFor = awayTeamStats.Goals.For.Total.Total ,
+                            GoalsAgainst = awayTeamStats.Goals.Against.Total.Total ,
+                            CleanSheets = awayTeamStats.CleanSheet?.Total ?? 0,
+                            FailedToScore = awayTeamStats.FailedToScore?.Total ?? 0,
+                            PenaltiesScored = awayTeamStats.Penalty.Scored.Total,
+                            PenaltiesMissed = awayTeamStats.Penalty.Missed.Total,
+                            StreakWins = awayTeamStats.Biggest.Streak.Wins,
+                            StreakLoses = awayTeamStats.Biggest.Streak.Loses,
+                            YellowCardsTotal = awayTeamStats.Cards.Yellow.Values.Sum(y => y.Total ?? 0),
+                            RedCardsTotal = awayTeamStats.Cards.Red.Values.Sum(r => r.Total ?? 0)
+                        },
+                        Result = stat.Result,
                     };
                     records.Add(record);
                 }
@@ -49,24 +76,29 @@ namespace iambetter.Application.Services.AI
             }
         }
 
-        public void WriteCsv<T>(string filePath, List<T> records)
+        public void WriteCsv(string filePath, List<MatchRecord> records)
         {
-            if (records == null || records.Count == 0)
-                return;
+            var csv = new StringBuilder();
 
-            var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            // Dynamically generate headers for Team A and Team B
+            var teamStatsProperties = typeof(TeamDataSetStats).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var headers = teamStatsProperties.Select(p => $"TeamA_{p.Name}")
+                .Concat(teamStatsProperties.Select(p => $"TeamB_{p.Name}"))
+                .Concat(new[] { "Match_Result" });
+            csv.AppendLine(string.Join(",", headers));
 
-            using (var writer = new StreamWriter(filePath, false, Encoding.UTF8))
+            // Write each record
+            foreach (var record in records)
             {
-                // Write header row (column names)
-                writer.WriteLine(string.Join(",", properties.Select(p => p.Name)));
+                var teamAValues = teamStatsProperties.Select(p => p.GetValue(record.Home)?.ToString() ?? "0");
+                var teamBValues = teamStatsProperties.Select(p => p.GetValue(record.Away)?.ToString() ?? "0");
+                var resultValue = string.IsNullOrWhiteSpace(record.Result?.ToString()) ? "0" : record.Result;
 
-                // Write data rows
-                foreach (var record in records)
-                {
-                    writer.WriteLine(string.Join(",", properties.Select(p => p.GetValue(record, null))));
-                }
+                var line = string.Join(",", teamAValues.Concat(teamBValues).Concat(new[] { resultValue }));
+                csv.AppendLine(line);
             }
+
+            File.WriteAllText(filePath, csv.ToString());
         }
     }
 }
