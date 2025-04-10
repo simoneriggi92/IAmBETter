@@ -1,5 +1,10 @@
+using iambetter.Application.Services.API;
+using iambetter.Application.Services.Database;
+using iambetter.Application.Services.Database.Abstracts;
 using iambetter.Application.Services.Database.Interfaces;
 using iambetter.Application.Services.Interfaces;
+using iambetter.Domain.Entities.Database.Projections;
+using iambetter.Domain.Entities.Models;
 
 namespace iambetter.Application.Services.Scheduled
 {
@@ -7,13 +12,21 @@ namespace iambetter.Application.Services.Scheduled
     {
         private readonly ILogger<ScheduledTaskManager> _logger;
         private readonly ITaskRepository _taskRepository;
+        private readonly MatchDataService _matchDataService;
+        private readonly IAIDataSetService _dataSetComposerService;
+        private readonly APIService _apiService;
+        private readonly TeamDataService _teamRepoService;
 
-        public ScheduledTaskManager(ILogger<ScheduledTaskManager> logger, ITaskRepository taskRepository)
+        public ScheduledTaskManager(ILogger<ScheduledTaskManager> logger, ITaskRepository taskRepository, BaseDataService<MatchDTO> matchDataService, IAIDataSetService dataSetComposerService, APIService apiService, BaseDataService<Team> teamRepoService)
         {
             _logger = logger;
             _taskRepository = taskRepository;
+            _matchDataService = matchDataService as MatchDataService;
+            _dataSetComposerService = dataSetComposerService;
+            _apiService = apiService;
+            _teamRepoService = teamRepoService as TeamDataService;
         }
-
+        
         public async Task RunPendingTasksAsync()
         {
             var lastExecutionTime = await _taskRepository.GetLastExecutionTimeAsync("MyScheduledTask");
@@ -48,8 +61,9 @@ namespace iambetter.Application.Services.Scheduled
 
         private async Task ExecuteTaskAsync()
         {
+            await _matchDataService.GetNextRoundMatchesWithStatsAsync(_apiService, _teamRepoService, 2024,  135, "32");
             // Perform the actual scheduled task (e.g., data processing, cleanup, etc.)
-            await Task.Delay(1000); // Simulate work
+            // await Task.Delay(1000); // Simulate work
             _logger.LogInformation("Scheduled task completed successfully.");
         }
     }

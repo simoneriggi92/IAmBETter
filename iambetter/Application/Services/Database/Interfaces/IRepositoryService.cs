@@ -7,7 +7,7 @@ namespace iambetter.Application.Services.Database.Interfaces
         public Task InsertAsync(T entity);
         public Task InsertManyAsync(IEnumerable<T> entities);
 
-        public Task<T> GetAsync(string id);
+        public Task<T> GetAsync(string propertyName, string id);
 
         public Task<IEnumerable<T>> GetAllAsync();
 

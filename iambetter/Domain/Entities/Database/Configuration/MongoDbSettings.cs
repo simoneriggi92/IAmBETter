@@ -8,5 +8,6 @@
         public string TeamCollectionName { get; set; }
         public string MatchCollectionName { get; set; }
         public string StatsCollectionName { get; set; }
+        public string TaskCollectionName { get; set; }
     }
 }

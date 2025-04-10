@@ -1,5 +1,6 @@
 ﻿using iambetter.Application.Services.Database.Interfaces;
 using iambetter.Domain.Entities.Database.Configuration;
+using iambetter.Domain.Entities.Database.DTO;
 using iambetter.Domain.Entities.Database.Projections;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
@@ -26,9 +27,9 @@ namespace iambetter.Application.Services.Database
             return await _collection.Find(Builders<T>.Filter.Empty).ToListAsync();
         }
 
-        public async Task<T> GetAsync(string id)
+        public async Task<T> GetAsync(string proeprtyName,  string id)
         {
-            return await _collection.Find(Builders<T>.Filter.Eq("Id", id)).FirstOrDefaultAsync();
+            return await _collection.Find(Builders<T>.Filter.Eq(proeprtyName, id)).FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter, ProjectionDefinition<T> projection = null)
@@ -80,6 +81,7 @@ namespace iambetter.Application.Services.Database
                 "League" => settings.LeagueCollectionName,
                 $"{nameof(MatchDTO)}" => settings.MatchCollectionName,
                 $"{nameof(TeamStatsDTO)}" => settings.StatsCollectionName,
+                $"{nameof(TaskDTO)}" => settings.TaskCollectionName,
                 _ => throw new ArgumentException($"No collection name mapping for type {entity.Name}")
 
             };

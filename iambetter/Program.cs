@@ -4,6 +4,7 @@ using iambetter.Application.Services.Database;
 using iambetter.Application.Services.Database.Abstracts;
 using iambetter.Application.Services.Database.Interfaces;
 using iambetter.Application.Services.Interfaces;
+using iambetter.Application.Services.Scheduled;
 using iambetter.Domain.Entities.Database.Configuration;
 using iambetter.Domain.Entities.Database.Projections;
 using iambetter.Domain.Entities.Models;
@@ -35,6 +36,10 @@ builder.Services.AddScoped(typeof(IRepositoryService<>), typeof(MongoRepositoryS
 builder.Services.AddScoped<BaseDataService<Team>, TeamDataService>();
 builder.Services.AddScoped<BaseDataService<MatchDTO>, MatchDataService>();
 builder.Services.AddScoped<IAIDataSetService, DataSetComposerService>();
+
+builder.Services.AddSingleton<IHostedService, ScheduledTaskService>();
+builder.Services.AddScoped<IScheduledTaskManager, ScheduledTaskManager>();
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddHttpClient<APIService>();
 
 builder.Services.AddRazorPages();

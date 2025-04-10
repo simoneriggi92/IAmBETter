@@ -41,11 +41,11 @@ namespace iambetter.Application.Services.Database
                     //get the next round matches from the API
                     var apiResponse = await apiDataService.GetNextRoundMatches(season, matchesPerRound);
                     matches = GetMatchDTOsFromAPIResponse(apiResponse);
+                    await Task.Delay(60000); // Delay to avoid hitting the API rate limit
                 }
-
-                await Task.Delay(60000); // Delay to avoid hitting the API rate limit
                 
-                if(matches != null && matches.Any())
+                // only if the matches are not from the db (so statistics are not already in the db)
+                if(matches != null && matches.Any(x => x.TeamStatistics == null))
                 {
                     //get all statistics for the teams in the matches
                     var statistics = await apiDataService.GetAllTeamsStatisticsAsync(teamIds, season);

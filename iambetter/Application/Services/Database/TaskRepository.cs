@@ -18,7 +18,7 @@ namespace iambetter.Application.Services.Database
         
         public async Task<DateTime>? GetLastExecutionTimeAsync(string taskName)
         {
-            return await _repositoryService.GetAsync(taskName)
+            return await _repositoryService.GetAsync(nameof(TaskDTO.TaskName), taskName)
                 .ContinueWith(task =>
                 {
                     var taskDTO = task.Result;
@@ -44,7 +44,7 @@ namespace iambetter.Application.Services.Database
             else
             {
                 // If the task already exists, update its last execution time
-                var taskDTO = await _repositoryService.GetAsync(taskName);
+                var taskDTO = await _repositoryService.GetAsync(nameof(TaskDTO.TaskName), taskName);
 
                 if (taskDTO != null)
                 {
