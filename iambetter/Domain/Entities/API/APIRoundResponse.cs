@@ -16,7 +16,6 @@ namespace iambetter.Domain.Entities.API
             public DateTime Date { get; set; }
             public string Timezone { get; set; }
             public Venue Venue { get; set; }
-            public Status Status { get; set; }
         }
 
         public class Status

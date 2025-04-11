@@ -17,6 +17,8 @@ namespace iambetter.Application.Services.Database.Interfaces
 
         public Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter, ProjectionDefinition<T> projection = null);
 
+        public Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter, SortDefinition<T> sortDefinition = null, ProjectionDefinition<T> projection = null);
+
         public Task<ReplaceOneResult> ReplaceOneAsync(FilterDefinition<T> filter, T replacementDocument, ReplaceOptions replaceOptions);
 
         public Task<BulkWriteResult<T>> ReplaceManyAsync(IEnumerable<WriteModel<T>> replacementDocuments, BulkWriteOptions options);

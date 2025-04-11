@@ -33,6 +33,11 @@ namespace iambetter.Application.Services.Database.Abstracts
             return _repositoryService.GetByFilterAsync(filter, projection);
         }
 
+         public Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter, SortDefinition<T> sortDefinition = null,  ProjectionDefinition<T> projection = null)
+        {
+            return _repositoryService.GetByFilterAsync(filter, sortDefinition, projection);
+        }
+
         public async Task InsertAsync(T entity)
         {
             await _repositoryService.InsertAsync(entity);

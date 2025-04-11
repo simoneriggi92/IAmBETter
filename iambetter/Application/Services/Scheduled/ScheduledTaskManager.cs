@@ -16,6 +16,7 @@ namespace iambetter.Application.Services.Scheduled
         private readonly IAIDataSetService _dataSetComposerService;
         private readonly APIService _apiService;
         private readonly TeamDataService _teamRepoService;
+        private const string SERIEA_LEAGUE_ID = "135";
 
         public ScheduledTaskManager(ILogger<ScheduledTaskManager> logger, ITaskRepository taskRepository, BaseDataService<MatchDTO> matchDataService, IAIDataSetService dataSetComposerService, APIService apiService, BaseDataService<Team> teamRepoService)
         {
@@ -61,7 +62,7 @@ namespace iambetter.Application.Services.Scheduled
 
         private async Task ExecuteTaskAsync()
         {
-            await _matchDataService.GetNextRoundMatchesWithStatsAsync(_apiService, _teamRepoService, 2024,  135, "32");
+            await _matchDataService.GetNextRoundMatchesWithStatsAsync(_apiService, _teamRepoService, 135);
             // Perform the actual scheduled task (e.g., data processing, cleanup, etc.)
             // await Task.Delay(1000); // Simulate work
             _logger.LogInformation("Scheduled task completed successfully.");

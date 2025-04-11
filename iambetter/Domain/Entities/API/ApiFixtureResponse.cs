@@ -3,6 +3,7 @@ using iambetter.Domain.Enums;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
+using static iambetter.Domain.Entities.API.APIRoundResponse;
 
 namespace iambetter.Domain.Entities.Models
 {
@@ -13,6 +14,7 @@ namespace iambetter.Domain.Entities.Models
         public LeagueInfo League { get; set; }
         public ScoreInfo Score { get; set; }
         public TeamInfo Teams { get; set; }
+        public Status Status { get; set; }
     }
 
     public class FixtureInfo

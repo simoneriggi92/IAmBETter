@@ -27,10 +27,6 @@ namespace iambetter.Pages
 
         public async Task OnGet()
         {
-            var service = _matchDataService as MatchDataService;
-            //  await service.FillLastRoundStatistics(_apiService);
-            var matches = await service.GetAllMatchesAsync();
-            _dataSetComposerService.GenerateDataSet(matches);
         }
     }
 }
