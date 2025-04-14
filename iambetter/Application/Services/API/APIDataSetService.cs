@@ -175,5 +175,30 @@ namespace iambetter.Application.Services.API
 
             return result;
         }
+
+        public async Task<string> GetLastRoundFromApiAsync(int leagueId, int season, bool current = true)
+        {
+            using var client = new HttpClient();
+
+            client.DefaultRequestHeaders.Add("x-apisports-key", "YOUR_API_KEY");
+
+            var url = $"{_baseUrl}/fixtures/rounds?league={leagueId}&season={season}&current={current}";
+
+            var response = await client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"API call failed: {response.StatusCode}");
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var parsed = JsonDocument.Parse(json);
+            var round = parsed.RootElement
+                            .GetProperty("response")[0]
+                            .GetString();
+
+            return round;
+        }
+
     }
 }

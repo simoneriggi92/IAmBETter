@@ -11,8 +11,11 @@ namespace iambetter.Application.Services.Database
 {
     public class MatchDataService : BaseDataService<MatchDTO>
     {
-        public MatchDataService(IRepositoryService<MatchDTO> repositoryService) : base(repositoryService)
+        private readonly ILogger _logger;
+
+        public MatchDataService(IRepositoryService<MatchDTO> repositoryService, ILogger logger) : base(repositoryService)
         {
+            _logger = logger;
         }
 
          /// <summary>
@@ -26,58 +29,93 @@ namespace iambetter.Application.Services.Database
         /// <returns></returns>
         public async Task GetNextRoundMatchesWithStatsAsync(APIService apiDataService, TeamDataService teamDataService, int leagueId)
         {
-            IEnumerable<MatchDTO> matches = null;
+            IEnumerable<MatchDTO> matches;
             try
             {
-                var currentSeason = DateTime.UtcNow.Year - 1; // e.g. 2025 - 1 = 2024
+                _logger.LogInformation($"[{nameof(MatchDataService)}]:: Getting all the item IDs from the db");
+
+                var currentSeason = DateTime.UtcNow.Year - 1; // e.g. 2025 - 1 = 2024 -> to be changed with a new logic
                 //get all teams for the league and season
                 var teamIds = await teamDataService.GetAllTeamsIdsBySeasonAndLeagueAsync(leagueId, currentSeason);
-                
-                //Get the maximum number of rounds for the given season and league ID
-                var maxRounds = (teamIds.Count() - 1 ) * 2; // e.g. 20 teams = 38 rounds
-                var matchesPerRound = teamIds.Count() / 2; // e.g. 20 teams = 10 matches per round
-                
-                //get the last round from the db
-                var lastRound = await GetLastRoundFromDb();
-                //compute the number of the potenzial next round match to look for
 
-                if(string.IsNullOrWhiteSpace(lastRound))
+                int maxRounds, matchesPerRound;
+                GetMaxRoundAndMatchesPerRoundValues(teamIds, out maxRounds, out matchesPerRound);
+
+                _logger.LogInformation($"[{nameof(MatchDataService)}]:: Max rounds: {maxRounds}, Matchs per round: {matchesPerRound}");
+
+                _logger.LogInformation($"[{nameof(MatchDataService)}]:: Getting the last round from the db");
+
+                //get the last round from the db
+                var lastRound = await GetLastRoundFromDbAsync(maxRounds);
+
+                if (string.IsNullOrWhiteSpace(lastRound))
                 {
-                    //get the next round matches from the API
-                    var apiResponse = await apiDataService.GetNextRoundMatches(currentSeason, matchesPerRound);
-                    matches = GetMatchDTOsFromAPIResponse(apiResponse);
-                    await Task.Delay(60000);
+                    (matches, lastRound) = await GetNextMatchesToBePlayedfromAPIAsync(apiDataService, currentSeason, matchesPerRound);
                 }
                 else
+                {
                     //check if matches already exist in the db
                     matches = await GetNextRoundMatchesFromDbAsync(apiDataService, currentSeason, lastRound, matchesPerRound);
+                }
 
-                if(matches == null)
+                if (matches == null)
                     throw new Exception("No matches found for the given season and league ID.");
 
                 //Add the statistics to the matches if they are not already in the db
-                if(matches.All(x => x.TeamStatistics == null))
+                if (matches.Any(x => x.TeamStatistics == null))
                 {
-                    //get all statistics for the teams from the API
-                    var statistics = await apiDataService.GetAllTeamsStatisticsAsync(teamIds, currentSeason);
-
-                    //insert the matches into the database
-                    await InsertNextRoundMatchesAsync(matches, statistics);
+                    await GetTeamStatsFromAPIAsync(apiDataService, matches, currentSeason, teamIds);
                 }
 
                 //Check if the last round has been played or not
-                if(matches.All(x => x.Status.Short == MatchStatus.FT.ToString()))
+                if (matches.All(x => x.Status.Short == MatchStatus.FT.ToString()))
                 {
-                   await SetLastRoundMatchesResults(apiDataService, lastRound);      
+                    _logger.LogInformation($"[{nameof(MatchDataService)}]:: The last round has been played, getting the results from the API");
+                    await SetLastRoundMatchesResults(apiDataService, lastRound);
+                    _logger.LogInformation($"[{nameof(MatchDataService)}]:: The last round matches results have been updated in the db");
                 }
             }
             catch (Exception ex)
             {
-                await Task.Delay(1000);
+                _logger.LogError(ex, $"[{nameof(MatchDataService)}]:: Error while getting the next round matches: {ex.Message}");
+                throw;
             }
         }
 
-         /// <summary>
+        private async Task GetTeamStatsFromAPIAsync(APIService apiDataService, IEnumerable<MatchDTO> matches, int currentSeason, IEnumerable<int> teamIds)
+        {
+            _logger.LogInformation($"[{nameof(MatchDataService)}]:: Getting the statistics for the teams from the API");
+            //get all statistics for the teams from the API
+            var statistics = await apiDataService.GetAllTeamsStatisticsAsync(teamIds, currentSeason);
+
+            //insert the matches into the database
+            await InsertNextRoundMatchesAsync(matches, statistics);
+
+            _logger.LogInformation($"[{nameof(MatchDataService)}]:: Matches inserted into the db: {matches.Count()}");
+        }
+
+        private async Task<(IEnumerable<MatchDTO> matches, string lastRound)> GetNextMatchesToBePlayedfromAPIAsync(APIService apiDataService, int currentSeason, int matchesPerRound)
+        {
+            _logger.LogWarning($"[{nameof(MatchDataService)}]:: No last round found in the db, getting the next round matches from the API");
+            //get the next round matches from the API
+            var apiResponse = await apiDataService.GetNextRoundMatches(currentSeason, matchesPerRound);
+            var matches = GetMatchDTOsFromAPIResponse(apiResponse);
+
+            var lastRound = GetCleanRound(apiResponse.Response.FirstOrDefault()?.League.Round);
+            _logger.LogInformation($"[{nameof(MatchDataService)}]:: Last round: {lastRound}");
+            await Task.Delay(60000);
+            return (matches, lastRound);
+        }
+
+        private static void GetMaxRoundAndMatchesPerRoundValues(IEnumerable<int> teamIds, out int maxRounds, out int matchesPerRound)
+        {
+            //Get the maximum number of rounds for the given season and league ID
+            maxRounds = (teamIds.Count() - 1) * 2;
+            matchesPerRound = teamIds.Count() / 2;
+            // e.g. 20 teams = 10 matches per round
+        }
+
+        /// <summary>
         /// Get the next 10 round matches to be stored in the db.
         /// </summary>
         /// <param name="season"></param>
@@ -111,15 +149,27 @@ namespace iambetter.Application.Services.Database
             }).ToList();
         }
 
-        private async Task<string?> GetLastRoundFromDb()
+        private async Task<string?> GetLastRoundFromDbAsync(int maxRounds)
         {
             //get the last item saved in the db and get the round from it
             var filter = Builders<MatchDTO>.Filter.Empty;
             var sort = Builders<MatchDTO>.Sort.Descending(m => m.Round);
             var projection = Builders<MatchDTO>.Projection.Include(m => m.Round);
 
-            var lastRound = await GetByFilterAsync(Builders<MatchDTO>.Filter.Empty, sort, projection );
-            return lastRound.FirstOrDefault()?.Round;
+            var lastMatches = await GetByFilterAsync(Builders<MatchDTO>.Filter.Empty, sort, projection );
+            
+            int? lastRound = Convert.ToInt32(lastMatches.FirstOrDefault()?.Round);
+
+            //if is there still some mathc to be played or the last round in db is the last one (e.g.38), get the last round from the db, otherwise increase the round by 1
+            if( lastRound.HasValue && 
+            (lastMatches.Any(x =>x.TeamStatistics.Any(x => string.IsNullOrWhiteSpace(x.Result))) || lastRound == maxRounds))
+                return lastRound.ToString();
+            else
+            {
+                return lastRound < maxRounds 
+                ? (lastRound + 1).ToString()
+                : null;
+            }
         }
 
         /// <summary>
@@ -130,6 +180,8 @@ namespace iambetter.Application.Services.Database
         /// <returns></returns>
         private async Task InsertNextRoundMatchesAsync(IEnumerable<MatchDTO> matches, IEnumerable<TeamStatisticsResponse> statistics)
         {
+            var replaceOptions = new ReplaceOptions { IsUpsert = true };
+
             //for each match, get the team statistics for the teams in the match
             foreach (var match in matches)
             {
@@ -139,7 +191,12 @@ namespace iambetter.Application.Services.Database
                 if (homeTeam != null && awayTeam != null)
                     match.TeamStatistics = new List<TeamStatisticsResponse> { homeTeam, awayTeam };
                
-                    await base.InsertAsync(match);
+                  var filter = Builders<MatchDTO>.Filter.And(
+                    Builders<MatchDTO>.Filter.Eq(m => m.Season, match.Season),
+                    Builders<MatchDTO>.Filter.Eq(m => m.Round, match.Round),
+                    Builders<MatchDTO>.Filter.Eq(m => m.Teams.Home.TeamId, match.Teams.Home.TeamId));
+
+                await base.ReplaceOneAsync(filter, match, replaceOptions);
             }
         }
 
