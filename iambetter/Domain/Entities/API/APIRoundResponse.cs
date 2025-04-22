@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using iambetter.Domain.Entities.Models;
+using Newtonsoft.Json;
 
 namespace iambetter.Domain.Entities.API
 {
@@ -12,6 +13,7 @@ namespace iambetter.Domain.Entities.API
 
         public class Fixture
         {
+            [JsonIgnore]
             public int Id { get; set; }
             public DateTime Date { get; set; }
             public string Timezone { get; set; }

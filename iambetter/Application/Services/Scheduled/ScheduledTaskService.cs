@@ -10,7 +10,7 @@ namespace iambetter.Application.Services.Scheduled
     {
         public readonly ILogger<ScheduledTaskService> _logger;
         public readonly IServiceScopeFactory _serviceScopeFactory;
-        private static readonly TimeSpan _interval = TimeSpan.FromMinutes(5); //Define the interval
+        private static readonly TimeSpan _interval = TimeSpan.FromMinutes(1); //Define the interval
 
         public ScheduledTaskService(ILogger<ScheduledTaskService> logger, IServiceScopeFactory serviceScopeFactory)
         {

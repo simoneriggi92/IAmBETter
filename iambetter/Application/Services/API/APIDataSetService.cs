@@ -176,15 +176,13 @@ namespace iambetter.Application.Services.API
             return result;
         }
 
-        public async Task<string> GetLastRoundFromApiAsync(int leagueId, int season, bool current = true)
+        public async Task<string> GetLastRoundFromAPIAsync(int leagueId, int season, bool current = true)
         {
             using var client = new HttpClient();
 
-            client.DefaultRequestHeaders.Add("x-apisports-key", "YOUR_API_KEY");
+            var url = $"{_baseUrl}/fixtures?league={leagueId}&season={season}&status=NS";
 
-            var url = $"{_baseUrl}/fixtures/rounds?league={leagueId}&season={season}&current={current}";
-
-            var response = await client.GetAsync(url);
+            var response = await _httpClient.GetAsync(url);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -193,11 +191,10 @@ namespace iambetter.Application.Services.API
 
             var json = await response.Content.ReadAsStringAsync();
             var parsed = JsonDocument.Parse(json);
-            var round = parsed.RootElement
-                            .GetProperty("response")[0]
-                            .GetString();
+            var result = JsonSerializer.Deserialize<APIRoundResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            return round;
+
+            return result?.Response.FirstOrDefault()?.League.Round?? string.Empty;
         }
 
     }
