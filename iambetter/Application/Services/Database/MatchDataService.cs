@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using iambetter.Application.Services.AI;
 using iambetter.Application.Services.API;
 using iambetter.Application.Services.Database.Abstracts;
 using iambetter.Application.Services.Database.Interfaces;
@@ -27,7 +28,7 @@ namespace iambetter.Application.Services.Database
         /// <param name="season"></param>
         /// <param name="leagueId"></param>
         /// <returns></returns>
-        public async Task SetMatchesResultsAsync(APIService apiDataService, TeamDataService teamDataService, int leagueId)
+        public async Task SetMatchesResultsAsync(APIService apiDataService, TeamDataService teamDataService, DataSetComposerService dataSetComposerService,  int leagueId, bool skipRoundComputationFromAPI = false)
         {
             int maxRounds, matchesPerRound;
             IEnumerable<MatchDTO> matches;
@@ -40,7 +41,13 @@ namespace iambetter.Application.Services.Database
 
                 SetMaxMatchesPerSeasonAndMatchesPerRound(teamIds, out maxRounds, out matchesPerRound);
 
-                var roundToBeChecked = await CalculateRoundToBePlayedAsync(apiDataService, currentSeason, leagueId);
+                var roundToBeChecked = 0;
+
+                if(skipRoundComputationFromAPI)
+                    //get the last round from the db
+                    roundToBeChecked = Convert.ToInt32(await GetLastRoundNumberFromDbAsync(apiDataService, maxRounds, leagueId, currentSeason));
+                else
+                    roundToBeChecked = await CalculateRoundToBePlayedAsync(apiDataService, currentSeason, leagueId);
 
                 var matchesToBeChecked = await GetMatchesToBeCkeckedAsync(apiDataService, currentSeason, roundToBeChecked.ToString(), matchesPerRound);
 
@@ -54,6 +61,15 @@ namespace iambetter.Application.Services.Database
 
                 var isResultUpdated = await SetResultsAsync(apiDataService, matchesToBeChecked, currentSeason, leagueId, roundToBeChecked.ToString());
 
+                //update the dataset with the new results
+                if (isResultUpdated)
+                    Task.Run(() => 
+                    {
+                        dataSetComposerService.GenerateDataSet(matchesToBeChecked);
+                        _logger.LogInformation($"[{nameof(MatchDataService)}]:: The dataset has been updated with the new results");
+                    });
+                else
+                    _logger.LogWarning($"[{nameof(MatchDataService)}]:: No results to update.");
             }
             catch (Exception ex)
             {
@@ -105,15 +121,16 @@ namespace iambetter.Application.Services.Database
 
         private async Task<bool> SetResultsAsync(APIService apiDataService, IEnumerable<MatchDTO> matches, int currentSeason, int leagueId, string roundToBeChecked)
         {
+            var result = false;
             //set the last round matches results if all the matches are finished
             if (matches.Any(x => string.IsNullOrWhiteSpace(x.Result)))
             {
-                await SetLastRoundMatchesResults(apiDataService, matches, roundToBeChecked);
+                result = await SetLastRoundMatchesResults(apiDataService, matches, roundToBeChecked);
 
-                _logger.LogInformation($"[{nameof(MatchDataService)}]:: The last round matches results have been updated in the db");
-                return true;
+                if (result)
+                    _logger.LogInformation($"[{nameof(MatchDataService)}]:: The last round matches results have been updated in the db");
             }
-            return false;
+            return result;
         }
 
         private async Task<IEnumerable<TeamStatisticsResponse?>> SetTeamStatsFromAPIAsync(APIService apiDataService,  int currentSeason, IEnumerable<int> teamIds)
@@ -156,7 +173,7 @@ namespace iambetter.Application.Services.Database
             var filter = Builders<MatchDTO>.Filter.And(
                 Builders<MatchDTO>.Filter.Eq(m => m.Season, season),
                 Builders<MatchDTO>.Filter.Eq(m => m.Round, round),
-                Builders<MatchDTO>.Filter.Eq(m => m.Result, null)
+                Builders<MatchDTO>.Filter.Eq(m => m.Result, string.Empty)
             );
 
             // var projection = Builders<MatchDTO>.Projection.IncludeAll();
@@ -173,7 +190,7 @@ namespace iambetter.Application.Services.Database
                 Season = x.League.Season,
                 Round = GetCleanRound(x.League.Round),
                 Teams = x.Teams,
-                Result = x.Goals.Home.ToString() + ":" + x.Goals.Away.ToString(),
+                FinalScore = x.Goals.Home.ToString() + ":" + x.Goals.Away.ToString(),
                 Status = x.Status
             }).ToList();
         }
@@ -183,7 +200,10 @@ namespace iambetter.Application.Services.Database
            try
            {
              //get the last item saved in the db and get the round from it
-                var filter = Builders<MatchDTO>.Filter.Empty;
+                var filter =  Builders<MatchDTO>.Filter.And(
+                    Builders<MatchDTO>.Filter.Eq(m => m.Result, string.Empty)
+                );
+
                 var sort = Builders<MatchDTO>.Sort.Descending(m => m.Round);
                 var projection = Builders<MatchDTO>.Projection.Include(m => m.Round);
 
@@ -192,26 +212,10 @@ namespace iambetter.Application.Services.Database
                 int? lastRound = Convert.ToInt32(lastMatches.FirstOrDefault()?.Round);
 
                 //if is there still some matvc to be played or the last round in db is the last one (e.g.38), get the last round from the db, otherwise increase the round by 1
-                if( lastRound.HasValue && 
-                (lastMatches.Any(x =>x.TeamStatistics.Any(x => string.IsNullOrWhiteSpace(x.Result))) || lastRound == maxRounds))
+                if( lastRound.HasValue)
                     return lastRound.ToString();
-                else
-                {
-                    if(lastRound.HasValue)
-                        return lastRound < maxRounds 
-                        ? (lastRound + 1).ToString()
-                        : null;
-                    else
-                    {
-                        //get round from the API
-                        lastRound = Convert.ToInt32(
-                            GetCleanRound (
-                                await apiService.GetLastRoundFromAPIAsync(leagueId, season)
-                                )
-                        );
-                    }
-                }
-            return lastRound.ToString();
+
+            return null;
 
            }
            catch (System.Exception ex)
@@ -272,7 +276,7 @@ namespace iambetter.Application.Services.Database
         /// </summary>
         /// <param name="apiService"></param>
         /// <returns></returns>
-        private async Task SetLastRoundMatchesResults(APIService apiService, IEnumerable<MatchDTO> matches,  string lastRound = null)
+        private async Task<bool> SetLastRoundMatchesResults(APIService apiService, IEnumerable<MatchDTO> matches,  string lastRound = null)
         {
             // var headToHead = await GetNextRoundMatchesFromDbAsync(apiService, 2024, lastRound);
 
@@ -281,7 +285,8 @@ namespace iambetter.Application.Services.Database
 
             if (results == null || !results.Any())
             {
-                throw new Exception("No head to head statistics found for the given season and league ID.");
+                _logger.LogWarning("No head to head statistics found for the given season and league ID.");
+                return false;
             }
 
             //update headToHead 
@@ -306,6 +311,8 @@ namespace iambetter.Application.Services.Database
             await ReplaceManyAsync(matches.Select(m => new ReplaceOneModel<MatchDTO>(Builders<MatchDTO>.Filter.Eq(x => x.Id, m.Id), m)),
                 new BulkWriteOptions { IsOrdered = false }
              );
+
+             return true;
         }
 
 

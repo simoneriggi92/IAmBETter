@@ -23,5 +23,6 @@ namespace iambetter.Domain.Entities.Database.Projections
         public DateTime CreationDateUtc { get; set; } = DateTime.UtcNow;
         public DateTime LastUpdateDateUtc { get; set; } = DateTime.UtcNow;
         public string Result { get; set; } = string.Empty;
+        public string FinalScore { get; set; } = string.Empty;
     }
 }
