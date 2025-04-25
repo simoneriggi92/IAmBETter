@@ -75,11 +75,9 @@ namespace iambetter.Application.Services.API
                 var batchResult = await Task.WhenAll(batch.Select(x => GetTeamStatisticsAsync(x, season)));
 
                 //check if any of the tasks failed
-                if (batchResult.Any(x => x == null))
-                {
+                if (batchResult == null || batchResult.Any(x => x == null))
                     throw new Exception("Failed to retrieve team statistics for one or more teams");
-                }
-                                
+
                 results.AddRange(batchResult);
 
                 //wait before the next batch, except for the last one
@@ -125,13 +123,13 @@ namespace iambetter.Application.Services.API
 
         public async Task<IEnumerable<FixtureResponse>?> GetLastHeadToHeadOfAllTeams(IEnumerable<MatchDTO> headToHead, int last = 1)
         {
-           //Create a list of team ids from the headToHead list
+            //Create a list of team ids from the headToHead list
             var teamdIds = headToHead.Select(x => new { team1Id = Convert.ToInt32(x.Teams.Home.TeamId), team2Id = Convert.ToInt32(x.Teams.Away.TeamId) }).ToList();
 
             //we can do only 10 requests/minute, so we need to split the ids to tasks batches of 10 and wait for one minute between each batch     
 
-           var results = new List<FixtureResponse>();
-           //create list of list of 10 tasks 
+            var results = new List<FixtureResponse>();
+            //create list of list of 10 tasks 
             var batches = teamdIds.
                 Select((teamId, index) => new { teamId, index })
                 .GroupBy(x => x.index / MAX_REQUESTS_PER_MINUTE)
@@ -157,7 +155,7 @@ namespace iambetter.Application.Services.API
             return results;
         }
 
-        private async Task<APIRoundResponse>  GetLastHeadToHead(int team1Id, int team2Id, int last)
+        private async Task<APIRoundResponse> GetLastHeadToHead(int team1Id, int team2Id, int last)
         {
             var url = $"{_baseUrl}fixtures/headtohead?h2h={team1Id}-{team2Id}&last={last}";
             var response = await _httpClient.GetAsync(url);
@@ -194,7 +192,7 @@ namespace iambetter.Application.Services.API
             var result = JsonSerializer.Deserialize<APIRoundResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
 
-            return result?.Response.FirstOrDefault()?.League.Round?? string.Empty;
+            return result?.Response.FirstOrDefault()?.League.Round ?? string.Empty;
         }
 
     }

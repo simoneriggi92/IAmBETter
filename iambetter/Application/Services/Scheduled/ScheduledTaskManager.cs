@@ -27,12 +27,12 @@ namespace iambetter.Application.Services.Scheduled
             _apiService = apiService;
             _teamRepoService = teamRepoService as TeamDataService;
         }
-        
+
         public async Task RunPendingTasksAsync()
         {
             var lastExecutionTime = await _taskRepository.GetLastExecutionTimeAsync("MyScheduledTask");
 
-            if(ShouldRunTask(lastExecutionTime)) // Define the interval
+            if (ShouldRunTask(lastExecutionTime)) // Define the interval
             {
                 try
                 {
@@ -57,12 +57,12 @@ namespace iambetter.Application.Services.Scheduled
 
         public bool ShouldRunTask(DateTime lastExecutionTime)
         {
-                return (DateTime.UtcNow - lastExecutionTime).TotalHours >= 24; // Example:
+            return (DateTime.UtcNow - lastExecutionTime).TotalHours >= 24; // Example:
         }
 
         private async Task ExecuteTaskAsync()
         {
-            await _matchDataService.SetMatchesResultsAsync(_apiService, _teamRepoService, 135, true);
+            await _matchDataService.SetMatchesResultsAsync(_apiService, _teamRepoService, _dataSetComposerService, 135);
             // Perform the actual scheduled task (e.g., data processing, cleanup, etc.)
             // await Task.Delay(1000); // Simulate work
             _logger.LogInformation("Scheduled task completed successfully.");
