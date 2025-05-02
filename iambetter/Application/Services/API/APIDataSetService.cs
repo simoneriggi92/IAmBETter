@@ -11,7 +11,7 @@ namespace iambetter.Application.Services.API
         private readonly IConfiguration _configuration;
         private readonly string _baseUrl;
         private const string SERIEA_LEAGUE_ID = "135";
-        private const int DELAY_BETWEEN_REQUESTS = 60000;
+        private const int DELAY_BETWEEN_REQUESTS = 70000;
         private const int MAX_REQUESTS_PER_MINUTE = 10;
 
         public APIService(HttpClient httpClient, IConfiguration configuration)

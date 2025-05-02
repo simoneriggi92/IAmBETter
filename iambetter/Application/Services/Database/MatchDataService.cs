@@ -62,8 +62,9 @@ namespace iambetter.Application.Services.Database
 
                 //update the dataset with the new results
                 if (isResultUpdated)
-                    Task.Run(() =>
+                    Task.Run(async () =>
                     {
+                        matchesToBeChecked = await GetAllMatchesWithResultAsync();
                         dataSetComposerService.GenerateDataSet(matchesToBeChecked);
                         _logger.LogInformation($"[{nameof(MatchDataService)}]:: The dataset has been updated with the new results");
                     });
@@ -79,9 +80,17 @@ namespace iambetter.Application.Services.Database
 
         private async Task<int> CalculateRoundToBePlayedAsync(APIService apiDataService, int currentSeason, int leagueId)
         {
-            //get the last round from the API
-            var lastRound = await apiDataService.GetLastRoundFromAPIAsync(leagueId, currentSeason);
-            await Task.Delay(60000); // wait for one minute before to perform the next API call 
+            //Check if is there still a round already in the db with results to be updated (the previous one)
+            var lastRound = await GetLastRoundNumberFromDbAsync(apiDataService, 38, leagueId, currentSeason);
+
+            if (string.IsNullOrWhiteSpace(lastRound))
+            {
+
+                //get the last round from the API
+                lastRound = await apiDataService.GetLastRoundFromAPIAsync(leagueId, currentSeason);
+                await Task.Delay(70000); // wait for one minute before to perform the next API call 
+
+            }
 
             return Convert.ToInt32(GetCleanRound(lastRound));
         }
@@ -95,7 +104,7 @@ namespace iambetter.Application.Services.Database
                 //get the next round matches from the API
                 var apiResponse = await apiDataService.GetNextRoundMatches(currentSeason, matchesPerRound);
                 matches = GetMatchDTOsFromAPIResponse(apiResponse);
-                await Task.Delay(60000);
+                await Task.Delay(70000);
             }
 
             return matches.Where(x => x.Round == roundToBeChecked).ToList();
@@ -194,11 +203,14 @@ namespace iambetter.Application.Services.Database
                 );
 
                 var sort = Builders<MatchDTO>.Sort.Descending(m => m.Round);
-                var projection = Builders<MatchDTO>.Projection.Include(m => m.Round);
+                var projection = Builders<MatchDTO>.Projection.Include(m => m.Round).Include(m => m.Result);
 
                 var lastMatches = await GetByFilterAsync(Builders<MatchDTO>.Filter.Empty, sort, projection);
 
-                int? lastRound = Convert.ToInt32(lastMatches.FirstOrDefault()?.Round);
+                int? lastRound = Convert.ToInt32(lastMatches.FirstOrDefault(x => x.Result == string.Empty)?.Round);
+
+                if (lastRound == 0)
+                    return null;
 
                 //if is there still some matvc to be played or the last round in db is the last one (e.g.38), get the last round from the db, otherwise increase the round by 1
                 if (lastRound.HasValue)
@@ -252,10 +264,13 @@ namespace iambetter.Application.Services.Database
         }
 
 
-        private async Task<IEnumerable<MatchDTO>> GetAllMatchesAsync()
+        private async Task<IEnumerable<MatchDTO>> GetAllMatchesWithResultAsync()
         {
-            var filter = Builders<MatchDTO>.Filter.Empty;
-            var matches = await GetByFilterAsync(filter, null, null);
+            var filter = Builders<MatchDTO>.Filter.And(
+                Builders<MatchDTO>.Filter.Ne(m => m.Result, string.Empty)
+            );
+
+            var matches = await GetByFilterAsync(filter, sortDefinition: null, null);
             return matches;
         }
 

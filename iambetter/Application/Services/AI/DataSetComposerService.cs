@@ -23,7 +23,7 @@ namespace iambetter.Application.Services.AI
                     var homeTeamStats = stat.TeamStatistics.FirstOrDefault(x => x.Team.TeamId == stat.Teams.Home.TeamId);
                     var awayTeamStats = stat.TeamStatistics.FirstOrDefault(x => x.Team.TeamId == stat.Teams.Away.TeamId);
 
-                    if(homeTeamStats == null || awayTeamStats == null)
+                    if (homeTeamStats == null || awayTeamStats == null)
                         continue;
 
                     var record = new MatchRecord()
@@ -32,16 +32,16 @@ namespace iambetter.Application.Services.AI
                         {
                             TeamId = Convert.ToInt16(stat.Teams.Home.TeamId),
                             Played = homeTeamStats.Fixtures.Played.Total,
-                            Wins = homeTeamStats.Fixtures.Wins.Total ,
-                            Loses = homeTeamStats.Fixtures.Loses.Total ,
-                            GoalsFor = homeTeamStats.Goals.For.Total.Total ,
-                            GoalsAgainst = homeTeamStats.Goals.Against.Total.Total ,
+                            Wins = homeTeamStats.Fixtures.Wins.Total,
+                            Loses = homeTeamStats.Fixtures.Loses.Total,
+                            GoalsFor = homeTeamStats.Goals.For.Total.Total,
+                            GoalsAgainst = homeTeamStats.Goals.Against.Total.Total,
                             CleanSheets = homeTeamStats.CleanSheet?.Total ?? 0,
                             FailedToScore = homeTeamStats.FailedToScore?.Total ?? 0,
                             PenaltiesScored = homeTeamStats.Penalty.Scored.Total,
                             PenaltiesMissed = homeTeamStats.Penalty.Missed.Total,
                             StreakWins = homeTeamStats.Biggest.Streak.Wins,
-                            StreakLoses = homeTeamStats.Biggest.Streak.Loses ,
+                            StreakLoses = homeTeamStats.Biggest.Streak.Loses,
                             YellowCardsTotal = homeTeamStats.Cards.Yellow.Values.Sum(y => y.Total ?? 0),
                             RedCardsTotal = homeTeamStats.Cards.Red.Values.Sum(r => r.Total ?? 0)
                         },
@@ -49,10 +49,10 @@ namespace iambetter.Application.Services.AI
                         {
                             TeamId = Convert.ToInt16(stat.Teams.Away.TeamId),
                             Played = awayTeamStats.Fixtures.Played.Total,
-                            Wins = awayTeamStats.Fixtures.Wins.Total ,
-                            Loses = awayTeamStats.Fixtures.Loses.Total ,
-                            GoalsFor = awayTeamStats.Goals.For.Total.Total ,
-                            GoalsAgainst = awayTeamStats.Goals.Against.Total.Total ,
+                            Wins = awayTeamStats.Fixtures.Wins.Total,
+                            Loses = awayTeamStats.Fixtures.Loses.Total,
+                            GoalsFor = awayTeamStats.Goals.For.Total.Total,
+                            GoalsAgainst = awayTeamStats.Goals.Against.Total.Total,
                             CleanSheets = awayTeamStats.CleanSheet?.Total ?? 0,
                             FailedToScore = awayTeamStats.FailedToScore?.Total ?? 0,
                             PenaltiesScored = awayTeamStats.Penalty.Scored.Total,
