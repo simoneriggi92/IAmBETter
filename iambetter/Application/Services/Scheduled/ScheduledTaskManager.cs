@@ -15,16 +15,18 @@ namespace iambetter.Application.Services.Scheduled
         private readonly MatchDataService _matchDataService;
         private readonly IAIDataSetService _dataSetComposerService;
         private readonly APIService _apiService;
+        private readonly FastAPIDataService _fastApiService;
         private readonly TeamDataService _teamRepoService;
         private const string SERIEA_LEAGUE_ID = "135";
 
-        public ScheduledTaskManager(ILogger<ScheduledTaskManager> logger, ITaskRepository taskRepository, BaseDataService<MatchDTO> matchDataService, IAIDataSetService dataSetComposerService, APIService apiService, BaseDataService<Team> teamRepoService)
+        public ScheduledTaskManager(ILogger<ScheduledTaskManager> logger, ITaskRepository taskRepository, BaseDataService<MatchDTO> matchDataService, IAIDataSetService dataSetComposerService, APIService apiService, FastAPIDataService fastAPIDataService, BaseDataService<Team> teamRepoService)
         {
             _logger = logger;
             _taskRepository = taskRepository;
             _matchDataService = matchDataService as MatchDataService;
             _dataSetComposerService = dataSetComposerService;
             _apiService = apiService;
+            _fastApiService = fastAPIDataService;
             _teamRepoService = teamRepoService as TeamDataService;
         }
 
@@ -62,7 +64,7 @@ namespace iambetter.Application.Services.Scheduled
 
         private async Task ExecuteTaskAsync()
         {
-            await _matchDataService.SetMatchesResultsAsync(_apiService, _teamRepoService, _dataSetComposerService, 135);
+            await _matchDataService.SetMatchesResultsAsync(_apiService, _fastApiService, _teamRepoService, _dataSetComposerService, 135);
             // Perform the actual scheduled task (e.g., data processing, cleanup, etc.)
             // await Task.Delay(1000); // Simulate work
             _logger.LogInformation("Scheduled task completed successfully.");

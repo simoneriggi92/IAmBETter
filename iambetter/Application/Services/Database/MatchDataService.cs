@@ -2,9 +2,11 @@
 using iambetter.Application.Services.Database.Abstracts;
 using iambetter.Application.Services.Database.Interfaces;
 using iambetter.Application.Services.Interfaces;
+using iambetter.Domain.Entities.AI.Response;
 using iambetter.Domain.Entities.API;
 using iambetter.Domain.Entities.Database.Projections;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 
 namespace iambetter.Application.Services.Database
@@ -27,7 +29,7 @@ namespace iambetter.Application.Services.Database
         /// <param name="season"></param>
         /// <param name="leagueId"></param>
         /// <returns></returns>
-        public async Task SetMatchesResultsAsync(APIService apiDataService, TeamDataService teamDataService, IAIDataSetService dataSetComposerService, int leagueId, bool skipRoundComputationFromAPI = false)
+        public async Task SetMatchesResultsAsync(APIService apiDataService, FastAPIDataService fastAPIDataService, TeamDataService teamDataService, IAIDataSetService dataSetComposerService, int leagueId, bool skipRoundComputationFromAPI = false)
         {
             int maxRounds, matchesPerRound;
             IEnumerable<MatchDTO> matches;
@@ -62,14 +64,23 @@ namespace iambetter.Application.Services.Database
 
                 //update the dataset with the new results
                 if (isResultUpdated)
-                    Task.Run(async () =>
+                    await Task.Run(async () =>
                     {
                         matchesToBeChecked = await GetAllMatchesWithResultAsync();
                         dataSetComposerService.GenerateDataSet(matchesToBeChecked);
                         _logger.LogInformation($"[{nameof(MatchDataService)}]:: The dataset has been updated with the new results");
+                        await fastAPIDataService.PostCsvAsync(dataSetComposerService.GetCsvFilePath(), "/train");
+
+                        //simulate for now that first 10 matches are the next round matches
+                        matchesToBeChecked = await GetAllMatchesWithNoResultAsync();
+                        matchesToBeChecked = matchesToBeChecked.Where(x => x.Round == roundToBeChecked.ToString()).ToList();
+                        dataSetComposerService.GenerateDataSet(matchesToBeChecked);
+                        var result = await fastAPIDataService.PostCsvAsync(dataSetComposerService.GetCsvFilePath(), "/predict");
+                        var predictions = JsonConvert.DeserializeObject<PredictionResponse>(result);
                     });
                 else
                     _logger.LogWarning($"[{nameof(MatchDataService)}]:: No results to update.");
+
             }
             catch (Exception ex)
             {
@@ -268,6 +279,16 @@ namespace iambetter.Application.Services.Database
         {
             var filter = Builders<MatchDTO>.Filter.And(
                 Builders<MatchDTO>.Filter.Ne(m => m.Result, string.Empty)
+            );
+
+            var matches = await GetByFilterAsync(filter, sortDefinition: null, null);
+            return matches;
+        }
+
+        private async Task<IEnumerable<MatchDTO>> GetAllMatchesWithNoResultAsync()
+        {
+            var filter = Builders<MatchDTO>.Filter.And(
+                Builders<MatchDTO>.Filter.Eq(m => m.Result, string.Empty)
             );
 
             var matches = await GetByFilterAsync(filter, sortDefinition: null, null);

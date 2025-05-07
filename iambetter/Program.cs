@@ -38,9 +38,10 @@ builder.Services.AddScoped<BaseDataService<MatchDTO>, MatchDataService>();
 builder.Services.AddScoped<IAIDataSetService, DataSetComposerService>();
 
 builder.Services.AddSingleton<IHostedService, ScheduledTaskService>();
+builder.Services.AddHttpClient<APIService>();
+builder.Services.AddHttpClient<FastAPIDataService>();
 builder.Services.AddScoped<IScheduledTaskManager, ScheduledTaskManager>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
-builder.Services.AddHttpClient<APIService>();
 
 builder.Services.AddRazorPages();
 

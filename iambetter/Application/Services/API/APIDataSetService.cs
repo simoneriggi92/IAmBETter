@@ -194,6 +194,5 @@ namespace iambetter.Application.Services.API
 
             return result?.Response.FirstOrDefault()?.League.Round ?? string.Empty;
         }
-
     }
 }

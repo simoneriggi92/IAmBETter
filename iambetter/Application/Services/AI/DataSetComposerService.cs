@@ -76,6 +76,12 @@ namespace iambetter.Application.Services.AI
             }
         }
 
+        public string GetCsvFilePath()
+        {
+            var filePath = Path.Combine(Environment.CurrentDirectory, DATA_SET_FILENAME);
+            return filePath;
+        }
+
         public void WriteCsv(string filePath, List<MatchRecord> records)
         {
             var csv = new StringBuilder();
