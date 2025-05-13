@@ -6,6 +6,7 @@ using iambetter.Application.Services.Database.Interfaces;
 using iambetter.Application.Services.Interfaces;
 using iambetter.Application.Services.Scheduled;
 using iambetter.Domain.Entities.Database.Configuration;
+using iambetter.Domain.Entities.Database.DTO;
 using iambetter.Domain.Entities.Database.Projections;
 using iambetter.Domain.Entities.Models;
 using Microsoft.Extensions.Options;
@@ -36,6 +37,7 @@ builder.Services.AddScoped(typeof(IRepositoryService<>), typeof(MongoRepositoryS
 builder.Services.AddScoped<BaseDataService<Team>, TeamDataService>();
 builder.Services.AddScoped<BaseDataService<MatchDTO>, MatchDataService>();
 builder.Services.AddScoped<IAIDataSetService, DataSetComposerService>();
+builder.Services.AddScoped<BaseDataService<PredictionDTO>, PredictionService>();
 
 builder.Services.AddSingleton<IHostedService, ScheduledTaskService>();
 builder.Services.AddHttpClient<APIService>();

@@ -14,7 +14,7 @@ namespace iambetter.Domain.Entities.AI.Response
         public int HomeTeamId { get; set; }
 
         [JsonProperty("TeamB_TeamId")]
-        public int TeamB_TeamId { get; set; }
+        public int AwayTeamId { get; set; }
 
         [JsonProperty("Predicted_Result")]
         public string PredictedResult { get; set; } = string.Empty;

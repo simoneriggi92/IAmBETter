@@ -4,6 +4,7 @@ using iambetter.Application.Services.Database.Interfaces;
 using iambetter.Application.Services.Interfaces;
 using iambetter.Domain.Entities.AI.Response;
 using iambetter.Domain.Entities.API;
+using iambetter.Domain.Entities.Database.DTO;
 using iambetter.Domain.Entities.Database.Projections;
 using MongoDB.Driver;
 using Newtonsoft.Json;
@@ -29,10 +30,9 @@ namespace iambetter.Application.Services.Database
         /// <param name="season"></param>
         /// <param name="leagueId"></param>
         /// <returns></returns>
-        public async Task SetMatchesResultsAsync(APIService apiDataService, FastAPIDataService fastAPIDataService, TeamDataService teamDataService, IAIDataSetService dataSetComposerService, int leagueId, bool skipRoundComputationFromAPI = false)
+        public async Task SetMatchesResultsAsync(APIService apiDataService, FastAPIDataService fastAPIDataService, TeamDataService teamDataService, PredictionService predictionService, IAIDataSetService dataSetComposerService, int leagueId, bool skipRoundComputationFromAPI = false)
         {
             int maxRounds, matchesPerRound;
-            IEnumerable<MatchDTO> matches;
             var currentSeason = DateTime.UtcNow.Year - 1; // e.g. 2025 - 1 = 2024 -> to be changed with a new logic
 
             try
@@ -64,29 +64,76 @@ namespace iambetter.Application.Services.Database
 
                 //update the dataset with the new results
                 if (isResultUpdated)
-                    await Task.Run(async () =>
+                {
+                    matchesToBeChecked = await GetAllMatchesWithResultAsync();
+                    dataSetComposerService.GenerateDataSet(matchesToBeChecked);
+                    _logger.LogInformation($"[{nameof(MatchDataService)}]:: The dataset has been updated with the new results");
+                    await fastAPIDataService.PostCsvAsync(dataSetComposerService.GetCsvFilePath(), "/train");
+                }
+
+
+                //Get the matches without prediction saved in the db
+                var matchesToBePredicted = GetMatchesToBePredicted(roundToBeChecked, matchesToBeChecked);
+
+                if (matchesToBePredicted != null && matchesToBePredicted.Any())
+                {
+                    var predictions = await GetPredictionsFromAPIAsync(fastAPIDataService, dataSetComposerService, matchesToBeChecked);
+
+                    if (predictions != null)
                     {
-                        matchesToBeChecked = await GetAllMatchesWithResultAsync();
-                        dataSetComposerService.GenerateDataSet(matchesToBeChecked);
-                        _logger.LogInformation($"[{nameof(MatchDataService)}]:: The dataset has been updated with the new results");
-                        await fastAPIDataService.PostCsvAsync(dataSetComposerService.GetCsvFilePath(), "/train");
+                        IEnumerable<PredictionDTO> predictionDTOs = GetPredictionDTOs(matchesToBeChecked, predictions);
 
-                        //simulate for now that first 10 matches are the next round matches
-                        matchesToBeChecked = await GetAllMatchesWithNoResultAsync();
-                        matchesToBeChecked = matchesToBeChecked.Where(x => x.Round == roundToBeChecked.ToString()).ToList();
-                        dataSetComposerService.GenerateDataSet(matchesToBeChecked);
-                        var result = await fastAPIDataService.PostCsvAsync(dataSetComposerService.GetCsvFilePath(), "/predict");
-                        var predictions = JsonConvert.DeserializeObject<PredictionResponse>(result);
-                    });
-                else
-                    _logger.LogWarning($"[{nameof(MatchDataService)}]:: No results to update.");
+                        await predictionService.SavePredictionsAsync(predictionDTOs);
 
+                        //Set to true the predicted flag for the matches to be predicted and upsert with headToHead alaready updated into the collection
+                        matchesToBePredicted.ForEach(x => x.Predicted = true);
+
+                        await UpdateMatchesAsync(matchesToBePredicted);
+
+                        _logger.LogInformation($"[{nameof(MatchDataService)}]:: The predictions have been saved into the db");
+                    }
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[{nameof(MatchDataService)}]:: Error while getting the next round matches: {ex.Message}");
                 throw;
             }
+        }
+
+        private static async Task<PredictionResponse?> GetPredictionsFromAPIAsync(FastAPIDataService fastAPIDataService, IAIDataSetService dataSetComposerService, IEnumerable<MatchDTO> matchesToBeChecked)
+        {
+            dataSetComposerService.GenerateDataSet(matchesToBeChecked);
+            var result = await fastAPIDataService.PostCsvAsync(dataSetComposerService.GetCsvFilePath(), "/predict");
+            var predictions = JsonConvert.DeserializeObject<PredictionResponse>(result);
+            return predictions;
+        }
+
+        private static List<MatchDTO> GetMatchesToBePredicted(int roundToBeChecked, IEnumerable<MatchDTO> matchesToBeChecked)
+        {
+            return matchesToBeChecked.Where(x => !x.Predicted && x.Round == roundToBeChecked.ToString()).ToList();
+        }
+
+        private static IEnumerable<PredictionDTO> GetPredictionDTOs(IEnumerable<MatchDTO> matchesToBeChecked, PredictionResponse predictions)
+        {
+            return predictions.Predictions.Select(x => new PredictionDTO
+            {
+                HomeTeam = new Domain.Entities.Models.Team
+                {
+                    TeamId = x.HomeTeamId,
+                    Name = matchesToBeChecked.FirstOrDefault(m => m.Teams.Home.TeamId == x.HomeTeamId && m.Teams.Away.TeamId == x.AwayTeamId).Teams.Home.Name,
+                    Logo = matchesToBeChecked.FirstOrDefault(m => m.Teams.Home.TeamId == x.HomeTeamId && m.Teams.Away.TeamId == x.AwayTeamId).Teams.Home.Logo
+                },
+                AwayTeam = new Domain.Entities.Models.Team
+                {
+                    TeamId = x.AwayTeamId,
+                    Name = matchesToBeChecked.FirstOrDefault(m => m.Teams.Home.TeamId == x.HomeTeamId && m.Teams.Away.TeamId == x.AwayTeamId).Teams.Away.Name,
+                    Logo = matchesToBeChecked.FirstOrDefault(m => m.Teams.Home.TeamId == x.HomeTeamId && m.Teams.Away.TeamId == x.AwayTeamId).Teams.Away.Logo
+                },
+                MatchDate = matchesToBeChecked.FirstOrDefault(m => m.Teams.Home.TeamId == x.HomeTeamId && m.Teams.Away.TeamId == x.AwayTeamId).MatchDate,
+                Round = matchesToBeChecked.FirstOrDefault(m => m.Teams.Home.TeamId == x.HomeTeamId && m.Teams.Away.TeamId == x.AwayTeamId).Round,
+                PredictedResult = x.PredictedResult
+            });
         }
 
         private async Task<int> CalculateRoundToBePlayedAsync(APIService apiDataService, int currentSeason, int leagueId)
@@ -200,7 +247,9 @@ namespace iambetter.Application.Services.Database
                 Round = GetCleanRound(x.League.Round),
                 Teams = x.Teams,
                 FinalScore = x.Goals.Home.ToString() + ":" + x.Goals.Away.ToString(),
-                Status = x.Status
+                Status = x.Status,
+                MatchDate = Convert.ToDateTime(x.Fixture.Date)
+
             }).ToList();
         }
 
@@ -336,14 +385,18 @@ namespace iambetter.Application.Services.Database
             }
 
             if (setResults)
-                //upsert with headToHead alaready updated into the collection
-                await ReplaceManyAsync(matches.Select(m => new ReplaceOneModel<MatchDTO>(Builders<MatchDTO>.Filter.Eq(x => x.Id, m.Id), m)),
-                    new BulkWriteOptions { IsOrdered = false }
-                 );
+                await UpdateMatchesAsync(matches);
 
             return setResults;
         }
 
+        private async Task UpdateMatchesAsync(IEnumerable<MatchDTO> matches)
+        {
+            //upsert with headToHead alaready updated into the collection
+            await ReplaceManyAsync(matches.Select(m => new ReplaceOneModel<MatchDTO>(Builders<MatchDTO>.Filter.Eq(x => x.Id, m.Id), m)),
+                new BulkWriteOptions { IsOrdered = false }
+             );
+        }
 
         public bool IsThereAnyMatchToBePlayed(string round, int season)
         {

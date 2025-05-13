@@ -27,7 +27,7 @@ namespace iambetter.Application.Services.Database
             return await _collection.Find(Builders<T>.Filter.Empty).ToListAsync();
         }
 
-        public async Task<T> GetAsync(string proeprtyName,  string id)
+        public async Task<T> GetAsync(string proeprtyName, string id)
         {
             return await _collection.Find(Builders<T>.Filter.Eq(proeprtyName, id)).FirstOrDefaultAsync();
         }
@@ -40,7 +40,7 @@ namespace iambetter.Application.Services.Database
             return await _collection.Find(filter).Project<T>(projection).ToListAsync();
         }
 
-        public async Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter, SortDefinition<T> sortDefinition = null,  ProjectionDefinition<T> projection = null)
+        public async Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter, SortDefinition<T> sortDefinition = null, ProjectionDefinition<T> projection = null)
         {
             if (projection == null && sortDefinition == null)
                 return await _collection.Find(filter).ToListAsync();
@@ -90,6 +90,7 @@ namespace iambetter.Application.Services.Database
                 $"{nameof(MatchDTO)}" => settings.MatchCollectionName,
                 $"{nameof(TeamStatsDTO)}" => settings.StatsCollectionName,
                 $"{nameof(TaskDTO)}" => settings.TaskCollectionName,
+                $"{nameof(PredictionDTO)}" => settings.PredictionsCollectionName,
                 _ => throw new ArgumentException($"No collection name mapping for type {entity.Name}")
 
             };

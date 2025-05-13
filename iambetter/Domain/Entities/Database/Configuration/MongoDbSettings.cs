@@ -9,5 +9,6 @@
         public string MatchCollectionName { get; set; }
         public string StatsCollectionName { get; set; }
         public string TaskCollectionName { get; set; }
+        public string PredictionsCollectionName { get; set; }
     }
 }

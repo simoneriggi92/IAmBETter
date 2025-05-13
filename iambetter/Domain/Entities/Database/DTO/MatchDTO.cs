@@ -16,13 +16,14 @@ namespace iambetter.Domain.Entities.Database.Projections
         public int? Season { get; set; }
         public string Round { get; set; }
         // public FixtureInfo Fixture { get; set; }
-        public TeamInfo Teams { get; set;}
+        public TeamInfo Teams { get; set; }
         public Status Status { get; set; }
         public IEnumerable<TeamStatisticsResponse> TeamStatistics { get; set; } = new List<TeamStatisticsResponse>();
-
         public DateTime CreationDateUtc { get; set; } = DateTime.UtcNow;
         public DateTime LastUpdateDateUtc { get; set; } = DateTime.UtcNow;
         public string Result { get; set; } = string.Empty;
         public string FinalScore { get; set; } = string.Empty;
+        public DateTime MatchDate { get; set; }
+        public bool Predicted { get; set; } = false;
     }
 }
