@@ -91,6 +91,7 @@ namespace iambetter.Application.Services.Database
                 $"{nameof(TeamStatsDTO)}" => settings.StatsCollectionName,
                 $"{nameof(TaskDTO)}" => settings.TaskCollectionName,
                 $"{nameof(PredictionDTO)}" => settings.PredictionsCollectionName,
+                $"{nameof(LeagueInfoDTO)}" => settings.LeagueInfoCollectionName,
                 _ => throw new ArgumentException($"No collection name mapping for type {entity.Name}")
 
             };

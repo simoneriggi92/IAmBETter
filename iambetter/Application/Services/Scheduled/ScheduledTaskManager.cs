@@ -67,7 +67,7 @@ namespace iambetter.Application.Services.Scheduled
 
         private async Task ExecuteTaskAsync()
         {
-            await _matchDataService.SetMatchesResultsAsync(_apiService, _fastApiService, _teamRepoService, _predictionDataService, _dataSetComposerService, 135);
+            await _matchDataService.SetMatchesResultsAsync(_fastApiService, _teamRepoService, _predictionDataService, _dataSetComposerService, 135);
             // Perform the actual scheduled task (e.g., data processing, cleanup, etc.)
             // await Task.Delay(1000); // Simulate work
             _logger.LogInformation("Scheduled task completed successfully.");

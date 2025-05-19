@@ -6,31 +6,50 @@
 
 <h1>Generated BET</h1>
 
-@* @if (Model.Bet is not null)
-{
-    <table class="table">
-        <thead>
+<h2>Predictions for @Model.Input.League.Name - Round @Model.Input.League.Round - Season  @Model.Input.League.Season</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Match</th>
+            <th>Prediction</th>
+            <th>Round</th>
+        </tr>
+    </thead>
+    <tbody id="predictions-table">
+        @foreach (var p in Model.Input.Predictions)
+        {
             <tr>
-                <th>Home</th>
-                <th>Away</th>
-                <th>Prediction</th>
-                <th>Confidence (%)</th>
+                <td>@p.HomeTeam.Name vs @p.AwayTeam.Name</td>
+                <td>@p.PredictedResult</td>
+                <td>@p.Round</td>
             </tr>
-        </thead>
-        <tbody>
-            @foreach (var match in Model.Bet.Predictions)
-            {
-                <tr>
-                    <td>@match.HomeTeam</td>
-                    <td>@match.AwayTeam</td>
-                    <td>@match.PredictedOutcome</td>
-                    <td>@match.Confidence%</td>
-                </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        async function fetchPredictions() {
+            try {
+                const response = await fetch('/Index?handler=Predictions');
+                const data = await response.json();
+                const tbody = document.getElementById('predictions-table');
+
+                tbody.innerHTML = '';
+               data.forEach(p => {
+                    const row = `<tr>
+                        <td>${p.teamA} vs ${p.teamB}</td>
+                        <td>${p.predictedResult}</td>
+                        <td>${p.round}%</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+            } catch (e) {
+                console.error("Error fetching predictions:", e);
             }
-        </tbody>
-    </table>
+        }
+
+        setInterval(fetchPredictions, 60000); // 1 minute
+    </script>
 }
-else
-{
-    <p>Errore nel recupero della schedina.</p>
-} *@
