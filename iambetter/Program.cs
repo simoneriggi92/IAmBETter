@@ -34,13 +34,14 @@ builder.Services.AddSingleton(sp =>
 
 //add services
 builder.Services.AddScoped(typeof(IRepositoryService<>), typeof(MongoRepositoryService<>));
+builder.Services.AddHttpClient<APIService>();
+builder.Services.AddScoped<BaseDataService<LeagueInfoDTO>, LeagueInfoService>();
 builder.Services.AddScoped<BaseDataService<Team>, TeamDataService>();
 builder.Services.AddScoped<BaseDataService<MatchDTO>, MatchDataService>();
 builder.Services.AddScoped<IAIDataSetService, DataSetComposerService>();
 builder.Services.AddScoped<BaseDataService<PredictionDTO>, PredictionService>();
 
 builder.Services.AddSingleton<IHostedService, ScheduledTaskService>();
-builder.Services.AddHttpClient<APIService>();
 builder.Services.AddHttpClient<FastAPIDataService>();
 builder.Services.AddScoped<IScheduledTaskManager, ScheduledTaskManager>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();

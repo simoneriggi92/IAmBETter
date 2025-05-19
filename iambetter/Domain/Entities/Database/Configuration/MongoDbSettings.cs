@@ -10,5 +10,6 @@
         public string StatsCollectionName { get; set; }
         public string TaskCollectionName { get; set; }
         public string PredictionsCollectionName { get; set; }
+        public string LeagueInfoCollectionName { get; set; }
     }
 }
