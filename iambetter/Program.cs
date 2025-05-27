@@ -40,10 +40,12 @@ builder.Services.AddScoped<BaseDataService<Team>, TeamDataService>();
 builder.Services.AddScoped<BaseDataService<MatchDTO>, MatchDataService>();
 builder.Services.AddScoped<IAIDataSetService, DataSetComposerService>();
 builder.Services.AddScoped<BaseDataService<PredictionDTO>, PredictionService>();
+builder.Services.AddScoped<BaseDataService<PredicitonHistoryDTO>, PredictionHistoryService>();
 
 builder.Services.AddSingleton<IHostedService, ScheduledTaskService>();
 builder.Services.AddHttpClient<FastAPIDataService>();
-builder.Services.AddScoped<IScheduledTaskManager, ScheduledTaskManager>();
+builder.Services.AddScoped<ScheduledTaskManager>();
+builder.Services.AddScoped<HistoryScheduledTaskManager>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 
 builder.Services.AddRazorPages();

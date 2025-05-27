@@ -15,6 +15,8 @@ namespace iambetter.Application.Services.Database.Interfaces
 
         public Task DeleteAsync(string id);
 
+        public Task DeleteManyAsync(FilterDefinition<T> filter);
+
         public Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter, ProjectionDefinition<T> projection = null);
 
         public Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter, SortDefinition<T> sortDefinition = null, ProjectionDefinition<T> projection = null);

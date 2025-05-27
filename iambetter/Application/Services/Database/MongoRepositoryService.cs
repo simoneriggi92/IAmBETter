@@ -22,6 +22,11 @@ namespace iambetter.Application.Services.Database
             await _collection.DeleteOneAsync(Builders<T>.Filter.Eq("Id", id));
         }
 
+        public async Task DeleteManyAsync(FilterDefinition<T> filter)
+        {
+            await _collection.DeleteManyAsync(filter);
+        }
+
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _collection.Find(Builders<T>.Filter.Empty).ToListAsync();

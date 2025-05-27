@@ -19,11 +19,20 @@ namespace iambetter.Pages
         private readonly IAIDataSetService _dataSetComposerService;
         private readonly PredictionService _predictionService;
         private readonly LeagueInfoService _leagueInfoService;
+        private readonly PredictionHistoryService? _predictionHistoryService;
 
         [BindProperty]
         public UserInput Input { get; set; }
 
-        public IndexModel(ILogger<IndexModel> logger, APIService apiService, BaseDataService<Team> teamRepoService, BaseDataService<MatchDTO> matchDataService, IAIDataSetService dataSetComposerService, BaseDataService<PredictionDTO> predictionService, BaseDataService<LeagueInfoDTO> leagueInfoService)
+        public IndexModel(ILogger<IndexModel> logger,
+            APIService apiService,
+            BaseDataService<Team> teamRepoService,
+            BaseDataService<MatchDTO> matchDataService,
+            IAIDataSetService dataSetComposerService,
+            BaseDataService<PredictionDTO> predictionService,
+            BaseDataService<LeagueInfoDTO> leagueInfoService,
+            BaseDataService<PredicitonHistoryDTO> predictionHistoryService
+            )
         {
             _logger = logger;
             _apiService = apiService;
@@ -32,6 +41,7 @@ namespace iambetter.Pages
             _dataSetComposerService = dataSetComposerService;
             _predictionService = predictionService as PredictionService;
             _leagueInfoService = leagueInfoService as LeagueInfoService;
+            _predictionHistoryService = predictionHistoryService as PredictionHistoryService;
         }
 
         public async Task OnGet()
@@ -63,10 +73,27 @@ namespace iambetter.Pages
             return new JsonResult(simplified);
         }
 
+        public async Task<JsonResult> OnGetPredictionsHistoryAsync()
+        {
+            var _history = await _predictionHistoryService.GetAllAsync();
+            var simplified = _history.Select(p => new
+            {
+                round = p.Round,
+                teamA = p.HomeTeam.Name,
+                teamB = p.AwayTeam.Name,
+                predictedResult = p.PredictedResult,
+                actualResult = p.ActualResult,
+                status = p.PredictionStatus.ToString()
+            });
+
+            return new JsonResult(simplified);
+        }
+
         public class UserInput
         {
             public LeagueInfo League { get; set; }
             public IEnumerable<PredictionDTO> Predictions { get; set; } = new List<PredictionDTO>();
+            public IEnumerable<PredicitonHistoryDTO> PredicitonHistories { get; set; } = new List<PredicitonHistoryDTO>();
         }
     }
 }

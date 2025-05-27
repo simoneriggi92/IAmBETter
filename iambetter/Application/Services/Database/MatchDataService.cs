@@ -53,13 +53,19 @@ namespace iambetter.Application.Services.Database
 
                 SetMaxMatchesPerSeasonAndMatchesPerRound(teamIds, out maxRounds, out matchesPerRound);
 
-                var roundToBeChecked = 0;
+                int? roundToBeChecked = null;
 
                 if (skipRoundComputationFromAPI)
                     //get the last round from the db
                     roundToBeChecked = Convert.ToInt32(await GetLastRoundNumberFromDbAsync(_apiDataService, maxRounds, leagueId, currentSeason));
                 else
                     roundToBeChecked = await CalculateRoundToBePlayedAsync(currentSeason, leagueId);
+
+                if (roundToBeChecked == null)
+                {
+                    _logger.LogWarning($"[{nameof(MatchDataService)}]:: none league round have been found.");
+                    return;
+                }
 
                 //no league info stored in the db
                 leagueInfo.CurrentRound = roundToBeChecked.ToString();
@@ -90,7 +96,7 @@ namespace iambetter.Application.Services.Database
 
 
                 //Get the matches without prediction saved in the db
-                var matchesToBePredicted = GetMatchesToBePredicted(roundToBeChecked, matchesToBeChecked);
+                var matchesToBePredicted = GetMatchesToBePredicted(roundToBeChecked.Value, matchesToBeChecked);
 
                 if (matchesToBePredicted != null && matchesToBePredicted.Any())
                 {
@@ -149,11 +155,12 @@ namespace iambetter.Application.Services.Database
                 },
                 MatchDate = matchesToBeChecked.FirstOrDefault(m => m.Teams.Home.TeamId == x.HomeTeamId && m.Teams.Away.TeamId == x.AwayTeamId).MatchDate,
                 Round = matchesToBeChecked.FirstOrDefault(m => m.Teams.Home.TeamId == x.HomeTeamId && m.Teams.Away.TeamId == x.AwayTeamId).Round,
-                PredictedResult = x.PredictedResult
+                PredictedResult = x.PredictedResult,
+                MatchId = matchesToBeChecked.FirstOrDefault(m => m.Teams.Home.TeamId == x.HomeTeamId && m.Teams.Away.TeamId == x.AwayTeamId).Id,
             });
         }
 
-        public async Task<int> CalculateRoundToBePlayedAsync(int currentSeason, int leagueId, bool applyDelay = true)
+        public async Task<int?> CalculateRoundToBePlayedAsync(int currentSeason, int leagueId, bool applyDelay = true)
         {
             //Check if is there still a round already in the db with results to be updated (the previous one)
             var lastRound = await GetLastRoundNumberFromDbAsync(_apiDataService, 38, leagueId, currentSeason);
@@ -163,6 +170,9 @@ namespace iambetter.Application.Services.Database
 
                 //get the last round from the API
                 lastRound = await _apiDataService.GetLastRoundFromAPIAsync(leagueId, currentSeason);
+
+                if (string.IsNullOrWhiteSpace(lastRound))
+                    return null;
 
                 if (applyDelay)
                     await Task.Delay(70000); // wait for one minute before to perform the next API call 

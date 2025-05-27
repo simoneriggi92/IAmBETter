@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using iambetter.Application.Services.Interfaces;
 
 namespace iambetter.Application.Services.Scheduled
@@ -10,7 +6,7 @@ namespace iambetter.Application.Services.Scheduled
     {
         public readonly ILogger<ScheduledTaskService> _logger;
         public readonly IServiceScopeFactory _serviceScopeFactory;
-        private static readonly TimeSpan _interval = TimeSpan.FromMinutes(1); //Define the interval
+        private static readonly TimeSpan _interval = TimeSpan.FromMinutes(2); //Define the interval
 
         public ScheduledTaskService(ILogger<ScheduledTaskService> logger, IServiceScopeFactory serviceScopeFactory)
         {
@@ -41,13 +37,21 @@ namespace iambetter.Application.Services.Scheduled
         private async Task ProcessScheduledTasksAsync(CancellationToken stoppingToken)
         {
             using var scope = _serviceScopeFactory.CreateScope();
-            var taskManager = scope.ServiceProvider.GetRequiredService<IScheduledTaskManager>();
+            var predictionTaskManager = scope.ServiceProvider.GetRequiredService<ScheduledTaskManager>();
+            var predictionHistoryTaskManager = scope.ServiceProvider.GetRequiredService<HistoryScheduledTaskManager>();
+
+            var taskManagers = new List<IScheduledTaskManager> { predictionTaskManager, predictionHistoryTaskManager };
 
             _logger.LogInformation("Processing scheduled tasks.");
 
             try
             {
-                await taskManager.RunPendingTasksAsync();
+
+                //run all scheduled tasks in parallel
+                var tasks = taskManagers.Select(manager => manager.RunPendingTasksAsync()).ToArray();
+                await Task.WhenAll(tasks);
+
+                _logger.LogInformation("Scheduled tasks processed successfully.");
             }
             catch (Exception ex)
             {

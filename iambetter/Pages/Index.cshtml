@@ -28,6 +28,22 @@
     </tbody>
 </table>
 
+
+<h3>Prediction History</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Match</th>
+            <th>Predicted</th>
+            <th>Actual</th>
+            <th>Status</th>
+            <th>Round</th>
+        </tr>
+    </thead>
+    <tbody id="history-table"></tbody>
+</table>
+
+
 @section Scripts {
     <script>
         async function fetchPredictions() {
@@ -50,6 +66,36 @@
             }
         }
 
+        async function fetchPredictionHistory() {
+            try {
+                const response = await fetch('/Index?handler=PredictionsHistory');
+                const data = await response.json();
+                const tbody = document.getElementById('history-table');
+
+                tbody.innerHTML = '';
+                data.forEach(p => {
+                    let rowClass = '';
+                    if (p.status === 'Success') rowClass = 'table-success';
+                    else if (p.status === 'Failed') rowClass = 'table-danger';
+
+                    const row = `<tr class="${rowClass}">
+                        <td>${p round}</td>
+                        <td>${p.teamA} vs ${p.teamB}</td>
+                        <td>${p.predictedResult}</td>
+                        <td>${p.actualResult}</td>
+                        <td>${p.status}</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+            } catch (e) {
+                console.error("Error fetching prediction history:", e);
+            }
+        }
+
+        fetchPredictions();
+        fetchPredictionHistory();
+
         setInterval(fetchPredictions, 60000); // 1 minute
+        setInterval(fetchPredictionHistory, 60000); // every 1 min
     </script>
 }

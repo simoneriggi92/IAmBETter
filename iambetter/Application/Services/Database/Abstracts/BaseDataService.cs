@@ -18,6 +18,12 @@ namespace iambetter.Application.Services.Database.Abstracts
             await _repositoryService.DeleteAsync(id);
         }
 
+        public async Task DeleteManyAsync(FilterDefinition<T> filter)
+        {
+
+            await _repositoryService.DeleteManyAsync(filter);
+        }
+
         public Task<IEnumerable<T>> GetAllAsync()
         {
             return _repositoryService.GetAllAsync();
@@ -33,7 +39,7 @@ namespace iambetter.Application.Services.Database.Abstracts
             return _repositoryService.GetByFilterAsync(filter, projection);
         }
 
-         public Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter, SortDefinition<T> sortDefinition = null,  ProjectionDefinition<T> projection = null)
+        public Task<IEnumerable<T>> GetByFilterAsync(FilterDefinition<T> filter, SortDefinition<T> sortDefinition = null, ProjectionDefinition<T> projection = null)
         {
             return _repositoryService.GetByFilterAsync(filter, sortDefinition, projection);
         }
