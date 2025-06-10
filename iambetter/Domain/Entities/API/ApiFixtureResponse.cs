@@ -86,6 +86,7 @@ namespace iambetter.Domain.Entities.Models
         public string Round { get; set; }
 
         public bool Standings { get; set; }
+        public string MaxRounds { get; set; }
     }
 
     public class ScoreInfo

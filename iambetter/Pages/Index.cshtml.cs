@@ -55,6 +55,7 @@ namespace iambetter.Pages
                     Round = leagueInfo.CurrentRound,
                     Season = leagueInfo.Season,
                     Name = leagueInfo.Name,
+                    MaxRounds = leagueInfo.MaxRounds
                 },
             };
 
@@ -76,21 +77,27 @@ namespace iambetter.Pages
         public async Task<JsonResult> OnGetPredictionsHistoryAsync()
         {
             var _history = await _predictionHistoryService.GetAllAsync();
-            var simplified = _history.Select(p => new
-            {
-                round = p.Round,
-                teamA = p.HomeTeam.Name,
-                teamB = p.AwayTeam.Name,
-                predictedResult = p.PredictedResult,
-                actualResult = p.ActualResult,
-                status = p.PredictionStatus.ToString()
-            });
+            var simplified = _history
+                .OrderBy(p => p.MatchDate)
+                .OrderByDescending(p => Convert.ToInt32(p.Round))
+                .Select(p => new
+                {
+                    round = p.Round,
+                    matchDate = $"{p.MatchDate.ToString("yyyy-MM-dd")} UTC",
+                    matchTime = $"{p.MatchDate.ToString("hh:mm")} UTC",
+                    teamA = p.HomeTeam.Name,
+                    teamB = p.AwayTeam.Name,
+                    predictedResult = p.PredictedResult,
+                    finalResult = p.FinalResult,
+                    status = p.PredictionStatus.ToString()
+                });
 
             return new JsonResult(simplified);
         }
 
         public class UserInput
         {
+            public bool IsLeagueTerminated => this.League.Round == this.League.MaxRounds;
             public LeagueInfo League { get; set; }
             public IEnumerable<PredictionDTO> Predictions { get; set; } = new List<PredictionDTO>();
             public IEnumerable<PredicitonHistoryDTO> PredicitonHistories { get; set; } = new List<PredicitonHistoryDTO>();
