@@ -17,5 +17,6 @@ namespace iambetter.Domain.Entities.Database.DTO
         public int Season { get; set; }
         public DateTime CreationDateUtc { get; set; } = DateTime.UtcNow;
         public DateTime LastUpdateDateUtc { get; set; } = DateTime.UtcNow;
+        public string? MaxRounds { get; set; }
     }
 }

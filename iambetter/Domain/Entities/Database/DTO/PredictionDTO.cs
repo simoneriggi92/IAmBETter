@@ -18,5 +18,24 @@ namespace iambetter.Domain.Entities.Database.DTO
         public DateTime LastUpdateDateUtc { get; set; }
         public DateTime MatchDate { get; set; }
         public string Round { get; set; }
+
+        /// <summary>
+        /// the id of the match is the id of the MatchDTO obct in the database
+        /// </summary>
+        public string MatchId { get; set; } = string.Empty;
+
+        public string? AIModelPredictedResult
+        {
+            get
+            {
+                return PredictedResult switch
+                {
+                    "1" => "1",
+                    "X" => "0",
+                    "2" => "-1",
+                    _ => null
+                };
+            }
+        }
     }
 }

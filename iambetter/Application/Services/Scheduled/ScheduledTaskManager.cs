@@ -9,7 +9,7 @@ using iambetter.Domain.Entities.Models;
 
 namespace iambetter.Application.Services.Scheduled
 {
-    public class ScheduledTaskManager : IScheduledTaskManager
+    public class ScheduledTaskManager : BaseScheduledTaskManager
     {
         private readonly ILogger<ScheduledTaskManager> _logger;
         private readonly ITaskRepository _taskRepository;
@@ -33,7 +33,7 @@ namespace iambetter.Application.Services.Scheduled
             _predictionDataService = predictionDataService as PredictionService; ;
         }
 
-        public async Task RunPendingTasksAsync()
+        public override async Task RunPendingTasksAsync()
         {
             var lastExecutionTime = await _taskRepository.GetLastExecutionTimeAsync("MyScheduledTask");
 
@@ -60,12 +60,7 @@ namespace iambetter.Application.Services.Scheduled
             }
         }
 
-        public bool ShouldRunTask(DateTime lastExecutionTime)
-        {
-            return (DateTime.UtcNow - lastExecutionTime).TotalHours >= 24; // Example:
-        }
-
-        private async Task ExecuteTaskAsync()
+        public override async Task ExecuteTaskAsync()
         {
             await _matchDataService.SetMatchesResultsAsync(_fastApiService, _teamRepoService, _predictionDataService, _dataSetComposerService, 135);
             // Perform the actual scheduled task (e.g., data processing, cleanup, etc.)

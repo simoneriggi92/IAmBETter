@@ -19,11 +19,20 @@ namespace iambetter.Pages
         private readonly IAIDataSetService _dataSetComposerService;
         private readonly PredictionService _predictionService;
         private readonly LeagueInfoService _leagueInfoService;
+        private readonly PredictionHistoryService? _predictionHistoryService;
 
         [BindProperty]
         public UserInput Input { get; set; }
 
-        public IndexModel(ILogger<IndexModel> logger, APIService apiService, BaseDataService<Team> teamRepoService, BaseDataService<MatchDTO> matchDataService, IAIDataSetService dataSetComposerService, BaseDataService<PredictionDTO> predictionService, BaseDataService<LeagueInfoDTO> leagueInfoService)
+        public IndexModel(ILogger<IndexModel> logger,
+            APIService apiService,
+            BaseDataService<Team> teamRepoService,
+            BaseDataService<MatchDTO> matchDataService,
+            IAIDataSetService dataSetComposerService,
+            BaseDataService<PredictionDTO> predictionService,
+            BaseDataService<LeagueInfoDTO> leagueInfoService,
+            BaseDataService<PredicitonHistoryDTO> predictionHistoryService
+            )
         {
             _logger = logger;
             _apiService = apiService;
@@ -32,6 +41,7 @@ namespace iambetter.Pages
             _dataSetComposerService = dataSetComposerService;
             _predictionService = predictionService as PredictionService;
             _leagueInfoService = leagueInfoService as LeagueInfoService;
+            _predictionHistoryService = predictionHistoryService as PredictionHistoryService;
         }
 
         public async Task OnGet()
@@ -45,6 +55,7 @@ namespace iambetter.Pages
                     Round = leagueInfo.CurrentRound,
                     Season = leagueInfo.Season,
                     Name = leagueInfo.Name,
+                    MaxRounds = leagueInfo.MaxRounds
                 },
             };
 
@@ -63,10 +74,33 @@ namespace iambetter.Pages
             return new JsonResult(simplified);
         }
 
+        public async Task<JsonResult> OnGetPredictionsHistoryAsync()
+        {
+            var _history = await _predictionHistoryService.GetAllAsync();
+            var simplified = _history
+                .OrderBy(p => p.MatchDate)
+                .OrderByDescending(p => Convert.ToInt32(p.Round))
+                .Select(p => new
+                {
+                    round = p.Round,
+                    matchDate = $"{p.MatchDate.ToString("yyyy-MM-dd")} UTC",
+                    matchTime = $"{p.MatchDate.ToString("hh:mm")} UTC",
+                    teamA = p.HomeTeam.Name,
+                    teamB = p.AwayTeam.Name,
+                    predictedResult = p.PredictedResult,
+                    finalResult = p.FinalResult,
+                    status = p.PredictionStatus.ToString()
+                });
+
+            return new JsonResult(simplified);
+        }
+
         public class UserInput
         {
+            public bool IsLeagueTerminated => this.League.Round == this.League.MaxRounds;
             public LeagueInfo League { get; set; }
             public IEnumerable<PredictionDTO> Predictions { get; set; } = new List<PredictionDTO>();
+            public IEnumerable<PredicitonHistoryDTO> PredicitonHistories { get; set; } = new List<PredicitonHistoryDTO>();
         }
     }
 }
