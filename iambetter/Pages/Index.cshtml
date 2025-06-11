@@ -1,10 +1,149 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Bet of the day";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-4">
+    <h1 class="mb-4 text-center text-primary">Upcoming AI Bet</h1>
+
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-primary text-white">
+
+            
+                @if(Model.Input.IsLeagueTerminated){
+                        <h2 class="card-title h4 mb-0">@Model.Input.League.Name - Season @Model.Input.League.Season is over</h2>
+                }
+                else{
+                    <h2 class="card-title h4 mb-0">Predictions for @Model.Input.League.Name - Round @Model.Input.League.Round - Season @Model.Input.League.Season</h2>
+                }
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Match</th>
+                            <th>Prediction</th>
+                            <th>Round</th>
+                        </tr>
+                    </thead>
+                    <tbody id="predictions-table">
+                        @foreach (var p in Model.Input.Predictions)
+                        {
+                            <tr>
+                                <td>@p.HomeTeam.Name vs @p.AwayTeam.Name</td>
+                                <td>@p.PredictedResult</td>
+                                <td>@p.Round</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <h3 class="card-title h4 mb-0">History</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Round</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Match</th>
+                            <th>Prediction</th>
+                            <th>Actual Result</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table">
+                        @* The Razor loop for history is removed because it's overwritten by JavaScript.
+                           The splitter logic will be implemented directly in fetchPredictionHistory()
+                        *@
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
+
+
+@section Scripts {
+    <script>
+        async function fetchPredictions() {
+            try {
+                const response = await fetch('/Index?handler=Predictions');
+                const data = await response.json();
+                const tbody = document.getElementById('predictions-table');
+
+                tbody.innerHTML = '';
+
+                data.forEach(p => {
+                    const row = `<tr>
+                        <td>${p.round}</td>
+                        <td>${p.teamA} vs ${p.teamB}</td>
+                        <td>${p.predictedResult}</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+            } catch (e) {
+                console.error("Error fetching predictions:", e);
+            }
+        }
+
+        async function fetchPredictionHistory() {
+            try {
+                const response = await fetch('/Index?handler=PredictionsHistory'); // Corrected handler name
+                const data = await response.json();
+                const tbody = document.getElementById('history-table');
+
+                tbody.innerHTML = '';
+                let currentHistoryRound = null; // Initialize a variable to track the current round
+
+                data.forEach(p => {
+
+                    //Add splitter if the round changes
+                    if(p.round !== currentHistoryRound)
+                    {
+                         tbody.innerHTML += `<br><br>
+                            <tr class="table-dark">
+                                <td colspan="6" class="text-center font-weight-bold">Round ${p.round}</td>
+                            </tr>
+                        `;
+                    }
+
+
+                    let rowClass = '';
+                    if (p.status === 'Success') {
+                        rowClass = 'table-success';
+                    } else if (p.status === 'Failed') {
+                        rowClass = 'table-danger';
+                    }
+
+                    const row = `<tr class="${rowClass}">
+                        <td>${p.round}</td>
+                        <td>${p.matchDate}</td>
+                        <td>${p.matchTime}</td>
+                        <td>${p.teamA} vs ${p.teamB}</td>
+                        <td>${p.predictedResult}</td>
+                        <td>${p.finalResult}</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                    currentHistoryRound = p.round; //Update the current round
+                });
+            } catch (e) {
+                console.error("Error fetching prediction history:", e);
+            }
+        }
+
+        fetchPredictions();
+        fetchPredictionHistory(); // Call the history function
+
+        setInterval(fetchPredictions, 1440000); // every 1 day
+        setInterval(fetchPredictionHistory, 1440000); // every 1 day
+    </script>
+}
