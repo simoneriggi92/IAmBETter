@@ -1,4 +1,4 @@
-#IAamBETter– Serie A Match Predictor
+# IAamBETter– Serie A Match Predictor
 
 **IAmBetter** is an AI-powered web application that predicts outcomes of Serie A football matches using historical statistics. It uses a trained machine learning model to generate match results (1, X, 2), stores predictions in a MongoDB database, and displays them in a live-updated UI.
 
