@@ -43,6 +43,7 @@ IAmBetter/
 🛠️ Technologies
 Frontend: ASP.NET Core Razor Pages
 
+```
 Backend (ML): Python + FastAPI
 
 Database: MongoDB (hosted or local)
@@ -51,7 +52,7 @@ ML Library: Scikit-learn
 
 Communication: HTTP API between C# and Python services
 
-⚙️ How It Works
+## ⚙️ How It Works
 Training the Model
 Upload a .csv file with match statistics (excluding result).
 
@@ -73,7 +74,7 @@ Current Predictions: Automatically fetched and displayed in a table.
 
 Prediction History: Displayed with success/failure status per round.
 
-🧪 API Endpoints
+## 🧪 API Endpoints
 Model Training
 http POST /train
 Content-Type: multipart/form-data
@@ -84,7 +85,7 @@ httpPOST /predict
 Content-Type: multipart/form-data
 Body: CSV file with upcoming matches
 
-🖼️ UI Overview
+## 🖼️ UI Overview
 🔄 Live Prediction Table: Updated every 60 seconds with new results.
 
 🧾 Prediction History Table: Shows actual vs predicted results per round.
@@ -93,12 +94,12 @@ Body: CSV file with upcoming matches
 
 ❌ Red rows = failed prediction
 
-📈 Example Prediction
+## 📈 Example Prediction
 Match	Predicted	Actual	Status
 Inter vs Milan	1	1	✅ Success
 Lazio vs Juventus	X	2	❌ Failed
 
-🧰 Prerequisites
+## 🧰 Prerequisites
 Python 3.9+
 
 .NET 7+
@@ -107,7 +108,7 @@ MongoDB (local or Atlas)
 
 Node.js (for building frontend, optional)
 
-🚀 Getting Started
+## 🚀 Getting Started
 Clone the repo:
 
 bash
@@ -125,7 +126,7 @@ Open your browser:
 
 http://localhost:5000
 
-📌 TODO
+## 📌 TODO
  Add authentication
 
  Add match date filters
@@ -134,10 +135,10 @@ http://localhost:5000
 
  Export predictions to CSV
 
-📄 License
+## 📄 License
 MIT License – Free to use, modify, and distribute.
 
-🤝 Contributing
+## 🤝 Contributing
 PRs are welcome! If you want to contribute to improving the predictions, UI, or dataset ingestion, feel free to open an issue or pull request.
 
 yaml
