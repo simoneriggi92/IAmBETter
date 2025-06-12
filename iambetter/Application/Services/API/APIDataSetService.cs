@@ -2,6 +2,8 @@
 using iambetter.Domain.Entities.Database.Projections;
 using iambetter.Domain.Entities.Models;
 using System.Text.Json;
+using iambetter.Application.Services.Database.Abstracts;
+using iambetter.Domain.Entities.Database.Configuration;
 
 namespace iambetter.Application.Services.API
 {
@@ -10,16 +12,44 @@ namespace iambetter.Application.Services.API
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
         private readonly string _baseUrl;
+        private readonly BaseDataService<AppConfigurationDTO> _appConfigurationService;
         private const string SERIEA_LEAGUE_ID = "135";
         private const int DELAY_BETWEEN_REQUESTS = 70000;
         private const int MAX_REQUESTS_PER_MINUTE = 10;
 
-        public APIService(HttpClient httpClient, IConfiguration configuration)
+        public APIService(HttpClient httpClient, IConfiguration configuration, BaseDataService<AppConfigurationDTO> appConfigurationService)
         {
+            _appConfigurationService = appConfigurationService;
             _httpClient = httpClient;
             _configuration = configuration;
             _baseUrl = _configuration["ApiFootball:BaseUrl"];
-            _httpClient.DefaultRequestHeaders.Add("x-apisports-key", _configuration["ApiFootball:ApiKey"]);
+            // _httpClient.DefaultRequestHeaders.Add("x-apisports-key", _configuration["ApiFootball:ApiKey"]);
+        }
+        
+        public async Task InitializeAsync()
+        {
+            var apiKey = await GetApiKeyAsync();
+            _httpClient.DefaultRequestHeaders.Add("x-apisports-key", apiKey);
+        }
+
+        private async Task<string> GetApiKeyAsync()
+        {
+            try
+            {
+                // Try to get key from database first
+                var dbConfig = await _appConfigurationService.GetAllAsync();
+                var dbApiKey = dbConfig?.SingleOrDefault()?.APIKey;
+            
+                if (!string.IsNullOrEmpty(dbApiKey))
+                {
+                    return dbApiKey;
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Failed to initialize API key", ex);
+            }
         }
 
         /// <summary>
