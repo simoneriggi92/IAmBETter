@@ -12,5 +12,7 @@
         public string PredictionsCollectionName { get; set; }
         public string LeagueInfoCollectionName { get; set; }
         public string PredictionsHistoryCollectionName { get; set; }
+        
+        public string ConfigurationCollectionName { get; set; }
     }
 }

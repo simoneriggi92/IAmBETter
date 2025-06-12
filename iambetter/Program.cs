@@ -5,6 +5,7 @@ using iambetter.Application.Services.Database.Abstracts;
 using iambetter.Application.Services.Database.Interfaces;
 using iambetter.Application.Services.Interfaces;
 using iambetter.Application.Services.Scheduled;
+using iambetter.Domain.Entities.API;
 using iambetter.Domain.Entities.Database.Configuration;
 using iambetter.Domain.Entities.Database.DTO;
 using iambetter.Domain.Entities.Database.Projections;
@@ -34,7 +35,12 @@ builder.Services.AddSingleton(sp =>
 
 //add services
 builder.Services.AddScoped(typeof(IRepositoryService<>), typeof(MongoRepositoryService<>));
+builder.Services.AddTransient<BaseDataService<AppConfigurationDTO>, AppConfigurationService>();
+
+// builder.Services.AddHttpClient<APIService>();
 builder.Services.AddHttpClient<APIService>();
+builder.Services.AddHostedService<APIServiceInitializer>();
+
 builder.Services.AddScoped<BaseDataService<LeagueInfoDTO>, LeagueInfoService>();
 builder.Services.AddScoped<BaseDataService<Team>, TeamDataService>();
 builder.Services.AddScoped<BaseDataService<MatchDTO>, MatchDataService>();
