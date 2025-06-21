@@ -239,6 +239,7 @@ docker run -d --name mongodb -p 27017:27017 mongo:latest --bind_ip_all
 
 ## 📌 TODO
 
+* [ ] Improve XGBoost model to return predictions more complex than simple 1, X, 2
 * [ ] Add authentication
 * [ ] Add match date filters
 * [ ] Support multiple leagues
